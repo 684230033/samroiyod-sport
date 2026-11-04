@@ -2,7 +2,7 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>ระบบยืม-คืนอุปกรณ์กีฬา - โรงเรียนสามร้อยยอดวิทยาคม</title>
     <!-- Tailwind CSS & FontAwesome -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -13,13 +13,15 @@
             theme: {
                 extend: {
                     colors: {
-                        brand: {
-                            navy: '#0b192c',
-                            blue: '#1e3e62',
-                            accent: '#f4ce14',
-                            gold: '#fbbf24',
-                            goldLight: '#fef9c3',
-                            bg: '#f8fafc'
+                        navy: {
+                            800: '#1e293b',
+                            900: '#0f172a',
+                            950: '#020617',
+                        },
+                        gold: {
+                            400: '#fbbf24',
+                            500: '#f59e0b',
+                            600: '#d97706',
                         }
                     },
                     fontFamily: {
@@ -30,643 +32,967 @@
         }
     </script>
     <style>
-        /* Custom scrollbar & smoother mobile interactions */
+        body { font-family: 'Prompt', sans-serif; background-color: #f8fafc; }
+        .glass-nav { background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(10px); }
         ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: #f1f5f9; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-        .glass-header { background: rgba(11, 25, 44, 0.92); backdrop-filter: blur(12px); }
-        .glass-card { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(8px); }
     </style>
 </head>
-<body class="font-prompt bg-brand-bg text-slate-800 flex flex-col min-h-screen antialiased selection:bg-amber-200">
+<body class="text-slate-800 min-h-screen flex flex-col selection:bg-amber-200">
 
-    <!-- Navbar หน้าจอทุกขนาด -->
-    <nav class="glass-header text-white sticky top-0 z-40 border-b border-amber-400/30 shadow-md transition-all">
+    <!-- TOP NAVIGATION BAR -->
+    <nav class="glass-nav text-white sticky top-0 z-50 border-b border-amber-400/30 shadow-md">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16 sm:h-20 items-center">
-                <!-- Logo & School Title -->
                 <div class="flex items-center space-x-3">
-                    <div class="bg-white p-1 rounded-2xl shadow-inner w-10 h-10 sm:w-13 sm:h-13 flex items-center justify-center overflow-hidden border border-amber-400/50 shrink-0">
+                    <div class="bg-white p-1 rounded-2xl shadow-inner w-11 h-11 sm:w-13 sm:h-13 flex items-center justify-center overflow-hidden border border-amber-400/50 shrink-0">
                         <img src="logo.png" 
-                             onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'text-brand-navy font-black text-xs text-center\'>ส.ว.</div>';" 
+                             onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'text-navy-900 font-black text-xs text-center\'>ส.ว.</div>';" 
                              alt="ตราโรงเรียนสามร้อยยอดวิทยาคม" 
                              class="w-full h-full object-contain">
                     </div>
                     <div>
-                        <h1 class="font-extrabold text-base sm:text-lg leading-snug tracking-tight flex items-center gap-1.5">
-                            ยืม-คืนอุปกรณ์กีฬา <span class="text-amber-400 text-sm sm:text-base">🏆</span>
+                        <h1 class="font-bold text-base sm:text-lg leading-tight flex items-center gap-1.5">
+                            ยืม-คืนอุปกรณ์กีฬา <span class="text-amber-400">🏆</span>
                         </h1>
-                        <p class="text-[11px] sm:text-xs text-slate-300 font-light flex items-center gap-1">
-                            โรงเรียนสามร้อยยอดวิทยาคม
-                        </p>
+                        <p class="text-[11px] sm:text-xs text-amber-200 font-light">โรงเรียนสามร้อยยอดวิทยาคม</p>
                     </div>
                 </div>
 
-                <!-- User Navigation & Action Buttons -->
-                <div class="flex items-center space-x-2">
-                    <button onclick="openModal('rulesModal')" class="bg-white/10 hover:bg-white/20 text-amber-300 text-xs font-medium px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl transition border border-amber-400/30 flex items-center gap-1 shadow-sm">
-                        <i class="fa-solid fa-book-bookmark text-amber-400"></i>
-                        <span class="hidden sm:inline">คู่มือ &</span> กฎระเบียบ
-                    </button>
-                    
-                    <div id="userNav" class="flex items-center">
-                        <!-- Rendered via JS -->
+                <!-- Session Profile & Logout -->
+                <div id="navUserSession" class="hidden items-center gap-2 sm:gap-3">
+                    <div class="text-right hidden sm:block">
+                        <div id="navUserName" class="font-bold text-sm text-white"></div>
+                        <div id="navUserSub" class="text-xs text-amber-300"></div>
                     </div>
+                    <button onclick="handleLogout()" class="bg-red-600 hover:bg-red-700 active:scale-95 text-white text-xs sm:text-sm font-bold px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl transition shadow flex items-center gap-1.5">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                        <span>ออกจากระบบ</span>
+                    </button>
                 </div>
             </div>
         </div>
     </nav>
 
-    <!-- Header Banner สไตล์ใหม่ (เน้นความหรูหรา เรียบหรู ไม่ดูเป็น AI) -->
-    <div class="bg-gradient-to-br from-brand-navy via-brand-blue to-slate-900 text-white py-6 sm:py-9 px-4 relative overflow-hidden border-b border-amber-400/20">
-        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between relative z-10 gap-4">
-            <div class="text-center md:text-left space-y-1">
-                <h2 class="text-xl sm:text-3xl font-extrabold tracking-tight text-white leading-tight">
-                    ระบบยืม-คืนอุปกรณ์กีฬาออนไลน์
-                </h2>
-                <p class="text-xs sm:text-sm text-slate-300 max-w-xl font-light">
-                    สะดวกรวดเร็ว ตรวจสอบได้ตลอด 24 ชั่วโมง สมาชิกทุกคนเริ่มต้นด้วยคะแนนวินัย 100 คะแนน
-                </p>
-            </div>
-            
-            <!-- ไอคอนอุปกรณ์กีฬาแบบมินิมอล -->
-            <div class="flex items-center space-x-3 text-2xl sm:text-3xl bg-white/5 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-white/10 shadow-lg">
-                <span title="ฟุตบอล" class="hover:scale-110 transition cursor-default">⚽</span>
-                <span title="บาสเกตบอล" class="hover:scale-110 transition cursor-default">🏀</span>
-                <span title="ปิงปอง" class="hover:scale-110 transition cursor-default">🏓</span>
-                <span title="วอลเลย์บอล" class="hover:scale-110 transition cursor-default">🏐</span>
-                <span title="เปตอง" class="hover:scale-110 transition cursor-default">⚪</span>
-                <span title="ฟุตซอล" class="hover:scale-110 transition cursor-default">👟</span>
-            </div>
-        </div>
-    </div>
+    <!-- MAIN APP CONTAINER -->
+    <div class="flex-grow flex flex-col">
 
-    <!-- Main Content Container -->
-    <main class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-8 flex-grow w-full">
-        
-        <!-- Stat Cards Grid (ปรับเป็น 2 คอลัมน์บนมือถือเพื่อความเรียบร้อย) -->
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5 mb-6 sm:mb-8">
-            <div class="bg-white p-4 sm:p-5 rounded-2xl shadow-sm border border-slate-200/80 flex items-center space-x-3 sm:space-x-4">
-                <div class="p-3 bg-blue-50 text-brand-blue rounded-xl text-xl sm:text-2xl shrink-0">⚽</div>
-                <div>
-                    <p class="text-[11px] sm:text-xs text-slate-400 font-medium">คลังอุปกรณ์</p>
-                    <h3 class="text-base sm:text-xl font-bold text-slate-800">9+ หมวดหมู่</h3>
-                </div>
-            </div>
-            <div class="bg-white p-4 sm:p-5 rounded-2xl shadow-sm border border-slate-200/80 flex items-center space-x-3 sm:space-x-4">
-                <div class="p-3 bg-amber-50 text-amber-600 rounded-xl text-xl sm:text-2xl shrink-0">⏳</div>
-                <div>
-                    <p class="text-[11px] sm:text-xs text-slate-400 font-medium">กำลังยืมขณะนี้</p>
-                    <h3 class="text-base sm:text-xl font-bold text-amber-600" id="statActiveBorrows">0 รายการ</h3>
-                </div>
-            </div>
-            <div class="bg-white p-4 sm:p-5 rounded-2xl shadow-sm border border-slate-200/80 flex items-center space-x-3 sm:space-x-4">
-                <div class="p-3 bg-emerald-50 text-emerald-600 rounded-xl text-xl sm:text-2xl shrink-0">✅</div>
-                <div>
-                    <p class="text-[11px] sm:text-xs text-slate-400 font-medium">ส่งคืนแล้ว</p>
-                    <h3 class="text-base sm:text-xl font-bold text-emerald-600" id="statReturnedBorrows">0 รายการ</h3>
-                </div>
-            </div>
-            <div class="bg-white p-4 sm:p-5 rounded-2xl shadow-sm border border-slate-200/80 flex items-center space-x-3 sm:space-x-4">
-                <div class="p-3 bg-indigo-50 text-indigo-600 rounded-xl text-xl sm:text-2xl shrink-0">👥</div>
-                <div>
-                    <p class="text-[11px] sm:text-xs text-slate-400 font-medium">สมาชิกนักเรียน</p>
-                    <h3 class="text-base sm:text-xl font-bold text-indigo-700" id="statTotalStudents">0 คน</h3>
-                </div>
-            </div>
-        </div>
-
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
-            
-            <!-- Left Panel: Form ขอยืมอุปกรณ์ -->
-            <div class="lg:col-span-1">
-                <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-5 sm:p-6 sticky top-24">
-                    <h2 class="text-base sm:text-lg font-bold text-brand-navy mb-4 pb-3 border-b border-slate-100 flex items-center justify-between">
-                        <span class="flex items-center gap-2">📋 แบบฟอร์มขอยืมอุปกรณ์</span>
-                    </h2>
-
-                    <!-- แจ้งเตือนเมื่อยังไม่ลงชื่อเข้าใช้ -->
-                    <div id="authNotice" class="bg-amber-50/80 text-amber-900 text-xs p-3.5 rounded-xl mb-4 flex items-start gap-2 border border-amber-200/70">
-                        <span class="text-sm">⚠️</span>
-                        <span>กรุณา <strong>เข้าสู่ระบบ</strong> ด้วยรหัสประจำตัวนักเรียนก่อนทำรายการ</span>
+        <!-- ================= VIEW 1: AUTHENTICATION (LOGIN / REGISTER) ================= -->
+        <section id="viewAuth" class="flex-grow flex items-center justify-center p-4 py-8">
+            <div class="max-w-md w-full bg-white rounded-3xl shadow-xl border border-slate-200 overflow-hidden">
+                <div class="bg-navy-900 text-white p-6 text-center relative border-b-4 border-amber-400">
+                    <img src="logo.png" onerror="this.style.display='none'" alt="Logo" class="w-16 h-16 mx-auto mb-2 object-contain">
+                    <h2 class="text-xl font-bold">ระบบยืม-คืนอุปกรณ์กีฬา</h2>
+                    <p class="text-xs text-amber-200 mt-1">โรงเรียนสามร้อยยอดวิทยาคม</p>
+                    
+                    <!-- Tabs Selection -->
+                    <div class="flex bg-navy-950 p-1 rounded-2xl mt-5 text-xs font-semibold">
+                        <button id="btnTabLogin" onclick="switchAuthTab('login')" class="flex-1 py-2.5 rounded-xl transition bg-amber-400 text-navy-950 font-bold">เข้าสู่ระบบ</button>
+                        <button id="btnTabRegister" onclick="switchAuthTab('register')" class="flex-1 py-2.5 rounded-xl transition text-slate-300 hover:text-white">ลงทะเบียนนักเรียน</button>
                     </div>
+                </div>
 
-                    <!-- แจ้งเตือนเมื่อถูกระงับสิทธิ์ -->
-                    <div id="banNotice" class="hidden bg-red-50 text-red-800 text-xs p-3.5 rounded-xl mb-4 border border-red-200">
-                        <div class="font-bold flex items-center gap-1.5"><i class="fa-solid fa-ban"></i> ถูกระงับสิทธิ์การยืม!</div>
-                        <p class="mt-1">คะแนนของคุณต่ำกว่า 60 คะแนน กรุณาติดต่องานกีฬาเพื่อปรับปรุงคะแนน</p>
-                    </div>
-
-                    <form id="borrowForm" onsubmit="handleBorrow(event)" class="space-y-4">
+                <div class="p-6">
+                    <!-- FORM: LOGIN -->
+                    <form id="formLogin" onsubmit="processLogin(event)" class="space-y-4">
                         <div>
-                            <label class="block text-xs sm:text-sm font-semibold text-slate-700 mb-1">เลือกอุปกรณ์กีฬา <span class="text-red-500">*</span></label>
-                            <select id="equipmentSelect" required onchange="toggleCustomEquipment()" class="w-full px-3.5 py-2.5 text-xs sm:text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-blue focus:border-transparent outline-none transition bg-white">
-                                <option value="">-- เลือกอุปกรณ์ --</option>
-                                <option value="⚽ ลูกฟุตบอล">⚽ ลูกฟุตบอล</option>
-                                <option value="🏓 ไม้ปิงปอง">🏓 ไม้ปิงปอง</option>
-                                <option value="🎯 ตะกร้อ">🎯 ตะกร้อ</option>
-                                <option value="🏀 ลูกบาสเกตบอล">🏀 ลูกบาสเกตบอล</option>
-                                <option value="📐 กรวยฝึกซ้อม">📐 กรวยฝึกซ้อม</option>
-                                <option value="⚪ ลูกเปตอง">⚪ ลูกเปตอง</option>
-                                <option value="🥅 เน็ท (วอลเลย์บอล/แบดมินตัน)">🥅 เน็ท (วอลเลย์/แบด)</option>
-                                <option value="🏐 วอลเลย์บอล">🏐 วอลเลย์บอล</option>
-                                <option value="👟 ลูกฟุตซอล">👟 ลูกฟุตซอล</option>
-                                <option value="📦 อื่นๆ">📦 อื่นๆ (ระบุเพิ่ม)</option>
-                            </select>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">รหัสประจำตัวนักเรียน (5 หลัก) / Admin ID</label>
+                            <input type="text" id="loginId" required placeholder="เช่น 00123 หรือ ADMIN" class="w-full px-4 py-3 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-navy-900 outline-none">
                         </div>
-
-                        <div id="customEquipmentBox" class="hidden">
-                            <label class="block text-xs sm:text-sm font-semibold text-slate-700 mb-1">ระบุชื่ออุปกรณ์อื่นๆ <span class="text-red-500">*</span></label>
-                            <input type="text" id="customEquipmentInput" placeholder="ระบุชื่ออุปกรณ์ที่ต้องการ" class="w-full px-3.5 py-2.5 text-xs sm:text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-blue outline-none">
-                        </div>
-
                         <div>
-                            <label class="block text-xs sm:text-sm font-semibold text-slate-700 mb-1">จำนวนที่ต้องการยืม <span class="text-red-500">*</span></label>
-                            <input type="number" id="borrowQuantity" min="1" max="20" value="1" required class="w-full px-3.5 py-2.5 text-xs sm:text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-blue outline-none">
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">รหัสผ่าน / PIN</label>
+                            <input type="password" id="loginPin" required placeholder="••••••" class="w-full px-4 py-3 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-navy-900 outline-none">
                         </div>
+                        <button type="submit" class="w-full bg-navy-900 hover:bg-navy-800 active:scale-98 text-white font-bold py-3.5 rounded-xl shadow transition text-sm flex items-center justify-center gap-2 border-b-2 border-amber-400">
+                            <i class="fa-solid fa-key"></i> เข้าสู่ระบบ
+                        </button>
+                    </form>
 
+                    <!-- FORM: REGISTER -->
+                    <form id="formRegister" onsubmit="processRegister(event)" class="space-y-3.5 hidden">
                         <div>
-                            <label class="block text-xs sm:text-sm font-semibold text-slate-700 mb-1">📅 วันและเวลายืม <span class="text-red-500">*</span></label>
-                            <input type="datetime-local" id="borrowDateTime" required class="w-full px-3.5 py-2.5 text-xs sm:text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-blue outline-none">
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">รหัสประจำตัวนักเรียน (5 หลัก) <span class="text-red-500">*</span></label>
+                            <input type="text" id="regId" maxlength="5" required placeholder="เช่น 00123" class="w-full px-4 py-2.5 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-navy-900 outline-none">
                         </div>
-
                         <div>
-                            <label class="block text-xs sm:text-sm font-semibold text-slate-700 mb-1">
-                                ⏰ กำหนดวันส่งคืน <span class="text-red-500">*</span>
-                                <span class="text-[11px] text-amber-600 font-normal block">(ยืมได้สูงสุดไม่เกิน 7 วัน)</span>
-                            </label>
-                            <input type="datetime-local" id="returnDateTime" required class="w-full px-3.5 py-2.5 text-xs sm:text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-blue outline-none">
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">ชื่อ - นามสกุล <span class="text-red-500">*</span></label>
+                            <input type="text" id="regName" required placeholder="นาย/นางสาว/เด็กชาย/เด็กหญิง..." class="w-full px-4 py-2.5 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-navy-900 outline-none">
                         </div>
-
-                        <div>
-                            <label class="block text-xs sm:text-sm font-semibold text-slate-700 mb-1">📸 แนบรูปภาพ/หลักฐานการยืม</label>
-                            <input type="file" id="evidenceFile" accept="image/*" onchange="previewImage(event)" class="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-3.5 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-amber-100 file:text-brand-navy hover:file:bg-amber-200 cursor-pointer">
-                            <div id="imagePreviewContainer" class="mt-2 hidden">
-                                <img id="imagePreview" src="" alt="ตัวอย่างรูปภาพ" class="w-full h-28 object-cover rounded-xl border border-slate-200">
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">ชั้นเรียน <span class="text-red-500">*</span></label>
+                                <input type="text" id="regGrade" required placeholder="เช่น ม.3/1" class="w-full px-4 py-2.5 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-navy-900 outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">เลขที่ <span class="text-red-500">*</span></label>
+                                <input type="number" id="regRoomNo" min="1" max="60" required placeholder="เช่น 12" class="w-full px-4 py-2.5 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-navy-900 outline-none">
                             </div>
                         </div>
-
-                        <button type="submit" id="submitBorrowBtn" disabled class="w-full bg-brand-navy hover:bg-brand-blue text-white font-semibold py-3 px-4 rounded-xl shadow-sm transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 border-b-2 border-amber-400 text-xs sm:text-sm">
-                            <i class="fa-solid fa-paper-plane"></i> บันทึกการยืมอุปกรณ์
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">เบอร์โทรศัพท์ <span class="text-red-500">*</span></label>
+                            <input type="tel" id="regPhone" required placeholder="08X-XXX-XXXX" class="w-full px-4 py-2.5 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-navy-900 outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">ตั้งรหัสผ่าน / PIN (4-6 ตัว) <span class="text-red-500">*</span></label>
+                            <input type="password" id="regPin" maxlength="6" required placeholder="••••••" class="w-full px-4 py-2.5 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-navy-900 outline-none">
+                        </div>
+                        <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 active:scale-98 text-white font-bold py-3.5 rounded-xl shadow transition text-sm flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-user-plus"></i> ยืนยันการลงทะเบียน
                         </button>
                     </form>
                 </div>
             </div>
+        </section>
 
-            <!-- Right Panel: รายการยืม-คืนอุปกรณ์สาธารณะ -->
-            <div class="lg:col-span-2 space-y-6">
-                <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-4 sm:p-6">
-                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5 pb-3 border-b border-slate-100">
-                        <h2 class="text-base sm:text-lg font-bold text-brand-navy flex items-center gap-2">
-                            <span>📊</span> รายการยืม-คืนอุปกรณ์สาธารณะ
-                        </h2>
-                        <div class="w-full sm:w-auto">
-                            <input type="text" id="searchInput" oninput="renderTable()" placeholder="🔍 ค้นหารายการ / ชื่อ..." class="w-full sm:w-60 px-3.5 py-1.5 border border-slate-300 rounded-xl text-xs sm:text-sm focus:ring-2 focus:ring-brand-blue outline-none">
-                        </div>
+
+        <!-- ================= VIEW 2: STUDENT PORTAL (USER) ================= -->
+        <section id="viewStudent" class="hidden max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full space-y-6">
+            
+            <!-- Student Header Profile Banner -->
+            <div class="bg-gradient-to-r from-navy-900 via-navy-800 to-slate-900 text-white rounded-3xl p-5 sm:p-6 shadow-md border-b-4 border-amber-400 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div class="flex items-center gap-4">
+                    <div class="w-14 h-14 bg-amber-400 text-navy-950 font-black text-2xl rounded-2xl flex items-center justify-center shrink-0 shadow">
+                        <i class="fa-solid fa-user-graduate"></i>
                     </div>
+                    <div>
+                        <h2 id="studentProfileName" class="text-lg sm:text-xl font-bold"></h2>
+                        <p id="studentProfileMeta" class="text-xs text-amber-200 mt-0.5 font-light"></p>
+                    </div>
+                </div>
+                <div class="bg-white/10 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/10 text-xs text-slate-200 flex items-center gap-2">
+                    <i class="fa-solid fa-shield-halved text-amber-400"></i>
+                    <span>บัญชีส่วนตัว (สิทธิ์นักเรียน)</span>
+                </div>
+            </div>
 
-                    <div class="overflow-x-auto -mx-4 sm:mx-0">
-                        <div class="inline-block min-w-full align-middle">
-                            <table class="min-w-full text-left border-collapse">
+            <!-- Student Equipment Stats (3 Cards) -->
+            <div class="grid grid-cols-3 gap-3 sm:gap-5">
+                <div class="bg-white p-4 sm:p-5 rounded-2xl shadow-sm border border-slate-200 text-center sm:text-left">
+                    <p class="text-[11px] sm:text-xs text-slate-500 font-semibold">อุปกรณ์ทั้งหมด</p>
+                    <h3 id="studentStatTotal" class="text-lg sm:text-2xl font-bold text-navy-900 mt-1">0</h3>
+                </div>
+                <div class="bg-white p-4 sm:p-5 rounded-2xl shadow-sm border border-slate-200 text-center sm:text-left">
+                    <p class="text-[11px] sm:text-xs text-slate-500 font-semibold">พร้อมให้ยืม</p>
+                    <h3 id="studentStatAvailable" class="text-lg sm:text-2xl font-bold text-emerald-600 mt-1">0</h3>
+                </div>
+                <div class="bg-white p-4 sm:p-5 rounded-2xl shadow-sm border border-slate-200 text-center sm:text-left">
+                    <p class="text-[11px] sm:text-xs text-slate-500 font-semibold">กำลังถูกยืม</p>
+                    <h3 id="studentStatBorrowed" class="text-lg sm:text-2xl font-bold text-amber-600 mt-1">0</h3>
+                </div>
+            </div>
+
+            <!-- Form Borrow & Personal Borrow History -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Left: Form -->
+                <div class="lg:col-span-1">
+                    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 sm:p-6 sticky top-24 space-y-4">
+                        <h3 class="font-bold text-navy-900 text-base pb-3 border-b border-slate-100 flex items-center gap-2">
+                            <i class="fa-solid fa-hand-holding-hand text-amber-500"></i>
+                            <span>แบบฟอร์มขอยืมอุปกรณ์</span>
+                        </h3>
+
+                        <form onsubmit="handleStudentSubmitBorrow(event)" class="space-y-3.5">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">เลือกอุปกรณ์กีฬา <span class="text-red-500">*</span></label>
+                                <select id="borrowEqSelect" required onchange="updateAvailableStockBadge()" class="w-full px-3.5 py-2.5 text-xs sm:text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-navy-900 outline-none">
+                                    <option value="">-- เลือกอุปกรณ์ --</option>
+                                </select>
+                                <p id="stockBadge" class="text-[11px] text-slate-500 mt-1 font-medium"></p>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">จำนวนที่ต้องการยืม <span class="text-red-500">*</span></label>
+                                <input type="number" id="borrowQty" min="1" max="20" value="1" required class="w-full px-3.5 py-2.5 text-xs sm:text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-navy-900 outline-none">
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">📅 วันและเวลายืม <span class="text-red-500">*</span></label>
+                                <input type="datetime-local" id="borrowDate" required class="w-full px-3.5 py-2.5 text-xs sm:text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-navy-900 outline-none">
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">
+                                    ⏰ กำหนดวันส่งคืน <span class="text-red-500">*</span>
+                                    <span class="text-[10px] text-amber-600 block font-normal">(ยืมได้สูงสุดไม่เกิน 7 วัน)</span>
+                                </label>
+                                <input type="datetime-local" id="returnDate" required class="w-full px-3.5 py-2.5 text-xs sm:text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-navy-900 outline-none">
+                            </div>
+
+                            <button type="submit" class="w-full bg-navy-900 hover:bg-navy-800 text-white font-bold py-3 px-4 rounded-xl shadow transition text-xs sm:text-sm flex items-center justify-center gap-2 border-b-2 border-amber-400">
+                                <i class="fa-solid fa-paper-plane"></i> ยื่นคำขอยืมอุปกรณ์
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Right: Own Borrow Table -->
+                <div class="lg:col-span-2">
+                    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 sm:p-6 space-y-4">
+                        <h3 class="font-bold text-navy-900 text-base pb-3 border-b border-slate-100 flex items-center justify-between">
+                            <span class="flex items-center gap-2"><i class="fa-solid fa-clock-rotate-left text-amber-500"></i> ประวัติคำขอยืมของฉัน</span>
+                            <span class="text-xs text-slate-400 font-normal">ส่วนบุคคล</span>
+                        </h3>
+
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-xs sm:text-sm">
                                 <thead>
-                                    <tr class="bg-slate-50 text-slate-500 text-[11px] uppercase tracking-wider">
-                                        <th class="p-3 pl-4 sm:pl-3 rounded-l-xl">ผู้ยืม</th>
-                                        <th class="p-3">อุปกรณ์</th>
-                                        <th class="p-3">กำหนดคืน</th>
-                                        <th class="p-3 text-center">หลักฐาน</th>
+                                    <tr class="bg-slate-50 text-slate-500 uppercase text-[11px]">
+                                        <th class="p-3 rounded-l-xl">อุปกรณ์</th>
+                                        <th class="p-3">จำนวน</th>
+                                        <th class="p-3">วันกำหนดคืน</th>
                                         <th class="p-3 text-center">สถานะ</th>
-                                        <th class="p-3 text-right pr-4 sm:pr-3 rounded-r-xl">จัดการ</th>
                                     </tr>
                                 </thead>
-                                <tbody id="borrowTableBody" class="divide-y divide-slate-100 text-xs sm:text-sm">
-                                    <!-- Rendered via JS -->
+                                <tbody id="studentBorrowTable" class="divide-y divide-slate-100">
+                                    <!-- JS Rendered -->
                                 </tbody>
                             </table>
                         </div>
                     </div>
                 </div>
             </div>
+        </section>
 
-        </div>
-    </main>
 
-    <!-- Modal: แดชบอร์ดผู้ดูแลระบบ (Admin Dashboard) -->
-    <div id="adminModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-3 sm:p-4">
-        <div class="bg-white rounded-2xl max-w-4xl w-full p-4 sm:p-6 shadow-2xl relative max-h-[90vh] flex flex-col">
-            <button onclick="closeModal('adminModal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 p-1">
-                <i class="fa-solid fa-xmark text-xl"></i>
-            </button>
+        <!-- ================= VIEW 3: ADMIN DASHBOARD ================= -->
+        <section id="viewAdmin" class="hidden max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full space-y-6">
             
-            <div class="flex items-center gap-3 border-b pb-3 mb-4 shrink-0">
-                <div class="p-2.5 bg-amber-100 text-brand-navy rounded-xl text-xl font-bold border border-amber-300">👑</div>
+            <!-- Admin Header Banner -->
+            <div class="bg-gradient-to-r from-navy-950 via-navy-900 to-slate-900 text-white rounded-3xl p-5 sm:p-6 shadow-md border-b-4 border-amber-400 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
-                    <h3 class="text-base sm:text-lg font-bold text-brand-navy">ระบบจัดการผู้ดูแลระบบ (Admin Dashboard)</h3>
-                    <p class="text-xs text-slate-500">ตรวจสอบรายชื่อนักเรียน บันทึกการใช้งาน และจัดการสิทธิ์</p>
+                    <span class="bg-amber-400 text-navy-950 font-bold text-[10px] px-2.5 py-1 rounded-full uppercase tracking-wider">Admin Panel</span>
+                    <h2 class="text-lg sm:text-2xl font-bold mt-1">แผงควบคุมผู้ดูแลระบบ</h2>
+                    <p class="text-xs text-slate-300 font-light mt-0.5">จัดการคำขอยืม อุปกรณ์ คลังสต็อก และอนุมัติการคืน</p>
                 </div>
             </div>
 
-            <!-- Tabs -->
-            <div class="flex border-b space-x-2 shrink-0 mb-4 overflow-x-auto text-xs sm:text-sm">
-                <button onclick="switchAdminTab('tabStudents')" id="btnTabStudents" class="px-3 py-2 font-bold border-b-2 border-brand-navy text-brand-navy whitespace-nowrap">
-                    👥 รายชื่อสมาชิก (<span id="adminTabStudentCount">0</span>)
+            <!-- Admin Stats Bar (4 Cards) -->
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
+                <div class="bg-white p-4 sm:p-5 rounded-2xl shadow-sm border border-slate-200">
+                    <p class="text-xs text-slate-500 font-semibold">อุปกรณ์ทั้งหมด</p>
+                    <h3 id="adminStatTotal" class="text-xl sm:text-2xl font-bold text-navy-900 mt-1">0</h3>
+                </div>
+                <div class="bg-white p-4 sm:p-5 rounded-2xl shadow-sm border border-slate-200">
+                    <p class="text-xs text-slate-500 font-semibold">พร้อมให้ยืม</p>
+                    <h3 id="adminStatAvailable" class="text-xl sm:text-2xl font-bold text-emerald-600 mt-1">0</h3>
+                </div>
+                <div class="bg-white p-4 sm:p-5 rounded-2xl shadow-sm border border-slate-200">
+                    <p class="text-xs text-slate-500 font-semibold">กำลังถูกยืม</p>
+                    <h3 id="adminStatBorrowed" class="text-xl sm:text-2xl font-bold text-indigo-600 mt-1">0</h3>
+                </div>
+                <div class="bg-white p-4 sm:p-5 rounded-2xl shadow-sm border border-slate-200">
+                    <p class="text-xs text-slate-500 font-semibold">รายการรออนุมัติ</p>
+                    <h3 id="adminStatPending" class="text-xl sm:text-2xl font-bold text-amber-500 mt-1">0</h3>
+                </div>
+            </div>
+
+            <!-- Admin Navigation Tabs -->
+            <div class="flex border-b border-slate-200 space-x-2 text-xs sm:text-sm overflow-x-auto">
+                <button id="adminTab1" onclick="switchAdminSubTab('requests')" class="px-4 py-3 font-bold border-b-2 border-navy-900 text-navy-900 whitespace-nowrap">
+                    📋 คำขอยืม & การคืน
                 </button>
-                <button onclick="switchAdminTab('tabLogs')" id="btnTabLogs" class="px-3 py-2 font-medium text-slate-500 hover:text-brand-navy whitespace-nowrap">
-                    📜 ประวัติการลงชื่อเข้าใช้
+                <button id="adminTab2" onclick="switchAdminSubTab('equipment')" class="px-4 py-3 font-medium text-slate-500 hover:text-navy-900 whitespace-nowrap">
+                    ⚽ จัดการคลังอุปกรณ์
                 </button>
-                <button onclick="switchAdminTab('tabData')" id="btnTabData" class="px-3 py-2 font-medium text-slate-500 hover:text-brand-navy whitespace-nowrap">
-                    💾 สำรอง/นำเข้าข้อมูล
+                <button id="adminTab3" onclick="switchAdminSubTab('students')" class="px-4 py-3 font-medium text-slate-500 hover:text-navy-900 whitespace-nowrap">
+                    👥 รายชื่อนักเรียนทั้งหมด
                 </button>
             </div>
 
-            <!-- Tab Content Area -->
-            <div class="flex-grow overflow-y-auto pr-1">
-                <!-- Tab 1: รายชื่อนักเรียน -->
-                <div id="tabStudents" class="space-y-3">
+            <!-- TAB 1: BORROW REQUESTS QUEUE -->
+            <div id="adminSubRequests" class="space-y-4">
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-6 space-y-4">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                        <h3 class="font-bold text-navy-900 text-base">รายการคำขอยืมทั้งหมด</h3>
+                        <input type="text" id="adminSearchRequest" oninput="renderAdminRequests()" placeholder="🔍 ค้นหานักเรียน / อุปกรณ์..." class="px-3.5 py-1.5 border border-slate-300 rounded-xl text-xs w-full sm:w-60 outline-none">
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs sm:text-sm">
+                            <thead>
+                                <tr class="bg-slate-50 text-slate-500 uppercase text-[11px]">
+                                    <th class="p-3">นักเรียน</th>
+                                    <th class="p-3">อุปกรณ์</th>
+                                    <th class="p-3">กำหนดคืน</th>
+                                    <th class="p-3 text-center">สถานะ</th>
+                                    <th class="p-3 text-right">การจัดการ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminRequestTable" class="divide-y divide-slate-100">
+                                <!-- JS Rendered -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 2: EQUIPMENT MANAGEMENT (CRUD) -->
+            <div id="adminSubEquipment" class="hidden space-y-4">
+                <div class="flex justify-between items-center">
+                    <h3 class="font-bold text-navy-900 text-base">รายการอุปกรณ์ในคลัง</h3>
+                    <button onclick="openAddEquipmentModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-3.5 py-2 rounded-xl transition shadow flex items-center gap-1.5">
+                        <i class="fa-solid fa-plus"></i> เพิ่มอุปกรณ์ใหม่
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" id="adminEquipmentGrid">
+                    <!-- JS Rendered Cards -->
+                </div>
+            </div>
+
+            <!-- TAB 3: STUDENT ROSTER & INDIVIDUAL HISTORY -->
+            <div id="adminSubStudents" class="hidden space-y-4">
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-6 space-y-4">
                     <div class="flex justify-between items-center">
-                        <input type="text" id="adminStudentSearch" oninput="renderAdminStudents()" placeholder="🔍 ค้นหารหัส หรือ ชื่อ..." class="px-3 py-1.5 border border-slate-300 rounded-xl text-xs outline-none w-full sm:w-64">
+                        <h3 class="font-bold text-navy-900 text-base">รายชื่อนักเรียนที่ลงทะเบียนในระบบ</h3>
+                        <input type="text" id="adminSearchStudent" oninput="renderAdminStudents()" placeholder="🔍 ค้นหารหัส / ชื่อนักเรียน..." class="px-3.5 py-1.5 border border-slate-300 rounded-xl text-xs w-full sm:w-60 outline-none">
                     </div>
-                    <div class="overflow-x-auto border rounded-xl">
-                        <table class="w-full text-left text-xs">
-                            <thead class="bg-slate-100 text-slate-700">
-                                <tr>
-                                    <th class="p-2.5">รหัส</th>
-                                    <th class="p-2.5">ชื่อ-นามสกุล</th>
-                                    <th class="p-2.5">ชั้น/เลขที่</th>
-                                    <th class="p-2.5 text-center">คะแนน</th>
-                                    <th class="p-2.5 text-center">สถานะ</th>
-                                    <th class="p-2.5 text-right">จัดการ</th>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs sm:text-sm">
+                            <thead>
+                                <tr class="bg-slate-50 text-slate-500 uppercase text-[11px]">
+                                    <th class="p-3">รหัสนักเรียน</th>
+                                    <th class="p-3">ชื่อ-นามสกุล</th>
+                                    <th class="p-3">ชั้น / เลขที่</th>
+                                    <th class="p-3">เบอร์โทรศัพท์</th>
+                                    <th class="p-3 text-right">ประวัติยืม</th>
                                 </tr>
                             </thead>
-                            <tbody id="adminStudentTableBody" class="divide-y divide-slate-100">
+                            <tbody id="adminStudentTable" class="divide-y divide-slate-100">
                                 <!-- JS Rendered -->
                             </tbody>
                         </table>
-                    </div>
-                </div>
-
-                <!-- Tab 2: ประวัติการล็อกอิน -->
-                <div id="tabLogs" class="hidden space-y-3">
-                    <p class="text-xs text-slate-500">บันทึกเวลาที่นักเรียนแต่ละคนลงชื่อเข้าใช้ในเครื่องนี้</p>
-                    <div class="overflow-x-auto border rounded-xl max-h-72">
-                        <table class="w-full text-left text-xs">
-                            <thead class="bg-slate-100 text-slate-700">
-                                <tr>
-                                    <th class="p-2.5">วัน-เวลา</th>
-                                    <th class="p-2.5">รหัสประจำตัว</th>
-                                    <th class="p-2.5">ชื่อ-นามสกุล</th>
-                                </tr>
-                            </thead>
-                            <tbody id="adminLogsTableBody" class="divide-y divide-slate-100">
-                                <!-- JS Rendered -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- Tab 3: Backup / Restore JSON -->
-                <div id="tabData" class="hidden space-y-4 text-xs sm:text-sm">
-                    <div class="bg-amber-50 p-3.5 rounded-xl border border-amber-200 text-xs text-amber-900 leading-relaxed">
-                        💡 <strong>คำแนะนำ:</strong> เนื่องจากระบบทำงานแบบ LocalStorage หากต้องการนำข้อมูลจากเครื่องอื่นๆ มารวมกัน สามารถกดส่งออก (Export) แล้วนำมาอัปโหลดเข้าเครื่องหลักได้
-                    </div>
-
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div class="border p-4 rounded-xl space-y-2">
-                            <h4 class="font-bold text-slate-800">📥 1. ส่งออกข้อมูล (Backup)</h4>
-                            <p class="text-xs text-slate-500">ดาวน์โหลดฐานข้อมูลสมาชิกและประวัติยืมเป็นไฟล์ .json</p>
-                            <button onclick="exportSystemData()" class="w-full bg-brand-navy hover:bg-brand-blue text-white font-semibold py-2 rounded-xl text-xs shadow-sm transition">
-                                <i class="fa-solid fa-download mr-1"></i> ดาวน์โหลดไฟล์ JSON
-                            </button>
-                        </div>
-                        <div class="border p-4 rounded-xl space-y-2">
-                            <h4 class="font-bold text-slate-800">📤 2. นำเข้าข้อมูล (Restore)</h4>
-                            <p class="text-xs text-slate-500">เลือกไฟล์ .json เพื่อนำเข้าข้อมูลบันทึกในเครื่องนี้</p>
-                            <input type="file" id="importJsonFile" accept=".json" class="w-full text-xs text-slate-500 file:mr-2 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:bg-slate-200">
-                            <button onclick="importSystemData()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2 rounded-xl text-xs shadow-sm transition">
-                                <i class="fa-solid fa-upload mr-1"></i> ยืนยันการนำเข้า
-                            </button>
-                        </div>
                     </div>
                 </div>
             </div>
+
+        </section>
+
+    </div>
+
+    <!-- MODAL 1: ADD/EDIT EQUIPMENT -->
+    <div id="modalEquipment" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl relative">
+            <button onclick="closeModal('modalEquipment')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600">
+                <i class="fa-solid fa-xmark text-xl"></i>
+            </button>
+            <h3 id="modalEquipmentTitle" class="font-bold text-navy-900 text-lg mb-4">เพิ่มอุปกรณ์กีฬา</h3>
+
+            <form onsubmit="handleSaveEquipment(event)" class="space-y-3.5">
+                <input type="hidden" id="eqEditId">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">ชื่ออุปกรณ์กีฬา <span class="text-red-500">*</span></label>
+                    <input type="text" id="eqName" required placeholder="เช่น ลูกฟุตบอลหนัง" class="w-full px-3.5 py-2.5 text-xs sm:text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-navy-900 outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">หมวดหมู่ <span class="text-red-500">*</span></label>
+                    <input type="text" id="eqCategory" required placeholder="เช่น ฟุตบอล, วอลเลย์บอล" class="w-full px-3.5 py-2.5 text-xs sm:text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-navy-900 outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">ไอคอน / อีโมจิ <span class="text-red-500">*</span></label>
+                    <input type="text" id="eqEmoji" required placeholder="เช่น ⚽ หรือ 🏓" class="w-full px-3.5 py-2.5 text-xs sm:text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-navy-900 outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">จำนวนอุปกรณ์ทั้งหมดในคลัง <span class="text-red-500">*</span></label>
+                    <input type="number" id="eqTotalQty" min="1" max="500" required placeholder="เช่น 10" class="w-full px-3.5 py-2.5 text-xs sm:text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-navy-900 outline-none">
+                </div>
+
+                <button type="submit" class="w-full bg-navy-900 hover:bg-navy-800 text-white font-bold py-3 rounded-xl shadow transition text-xs sm:text-sm mt-2">
+                    บันทึกข้อมูลอุปกรณ์
+                </button>
+            </form>
         </div>
     </div>
 
-    <!-- Modal: กฎระเบียบและคู่มือ (Rules Modal) -->
-    <div id="rulesModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4" onclick="closeModal('rulesModal')">
-        <div class="bg-white rounded-2xl max-w-2xl w-full p-5 sm:p-6 shadow-2xl relative max-h-[85vh] overflow-y-auto" onclick="event.stopPropagation()">
-            <button onclick="closeModal('rulesModal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600">
+    <!-- MODAL 2: STUDENT INDIVIDUAL HISTORY (ADMIN VIEW) -->
+    <div id="modalStudentHistory" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-3xl max-w-2xl w-full p-6 shadow-2xl relative max-h-[85vh] flex flex-col">
+            <button onclick="closeModal('modalStudentHistory')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600">
                 <i class="fa-solid fa-xmark text-xl"></i>
             </button>
             
-            <div class="flex items-center gap-3 border-b pb-3 mb-4">
-                <span class="text-3xl">📖</span>
-                <div>
-                    <h3 class="text-base sm:text-lg font-bold text-brand-navy">คู่มือ & กฎระเบียบการยืมอุปกรณ์กีฬา</h3>
-                    <p class="text-xs text-slate-500">งานพลศึกษา โรงเรียนสามร้อยยอดวิทยาคม</p>
-                </div>
+            <div class="border-b pb-3 mb-4 shrink-0">
+                <h3 id="histModalStudentName" class="font-bold text-navy-900 text-lg"></h3>
+                <p id="histModalStudentMeta" class="text-xs text-slate-500 mt-0.5"></p>
             </div>
 
-            <div class="space-y-4 text-xs sm:text-sm text-slate-700">
-                <div class="bg-amber-50 p-3.5 rounded-xl border border-amber-200">
-                    <h4 class="font-bold text-amber-900 mb-1 flex items-center gap-1.5">
-                        ⏳ เงื่อนไขระยะเวลาและการต่ออายุการยืม
-                    </h4>
-                    <ul class="list-disc list-inside text-xs text-amber-900 space-y-1.5 mt-2">
-                        <li><strong>ระยะเวลายืม:</strong> ยืมอุปกรณ์กีฬาได้สูงสุด <strong>3 ถึง 7 วัน</strong> ต่อครั้ง</li>
-                        <li><strong>การยืมต่อ:</strong> หากต้องการยืมต่อ <u>ต้องนำอุปกรณ์จริงกลับมาแสดงตัวที่ห้องพละ</u> เพื่อให้ครูตรวจรับว่ายังอยู่ครบ ไม่ชำรุด แล้วจึงยืมรอบใหม่</li>
-                    </ul>
-                </div>
-
-                <div class="bg-blue-50 p-3.5 rounded-xl border border-blue-200">
-                    <h4 class="font-bold text-brand-navy mb-1 flex items-center gap-1.5">
-                        <i class="fa-solid fa-star text-amber-500"></i> ระบบคะแนนวินัย (เริ่มต้น 100 คะแนน)
-                    </h4>
-                    <p class="text-xs text-slate-600">นักเรียนทุกคนมีคะแนนเริ่มต้น 100 คะแนน จะถูกตัดคะแนนหากส่งช้า ทำชำรุด หรือทำสูญหาย</p>
-                </div>
-
-                <div>
-                    <h4 class="font-bold text-slate-800 mb-2">เกณฑ์การหักคะแนนโดยผู้ดูแลระบบ (Admin)</h4>
-                    <ul class="space-y-2 text-xs">
-                        <li class="flex items-center justify-between p-2.5 bg-slate-50 rounded-lg border">
-                            <span>⏱️ <strong>ส่งคืนเกินกำหนด</strong></span>
-                            <span class="font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">หัก 5 - 10 คะแนน</span>
-                        </li>
-                        <li class="flex items-center justify-between p-2.5 bg-slate-50 rounded-lg border">
-                            <span>🛠️ <strong>อุปกรณ์ชำรุดเสียหาย</strong></span>
-                            <span class="font-bold text-orange-600 bg-orange-50 px-2 py-0.5 rounded border border-orange-200">หัก 15 - 30 คะแนน</span>
-                        </li>
-                        <li class="flex items-center justify-between p-2.5 bg-slate-50 rounded-lg border">
-                            <span>🚨 <strong>อุปกรณ์สูญหาย</strong></span>
-                            <span class="font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded border border-red-200">หัก 50 คะแนน + ชดใช้</span>
-                        </li>
-                    </ul>
-                </div>
-
-                <div class="bg-red-50 p-3.5 rounded-xl border border-red-200">
-                    <h4 class="font-bold text-red-800 mb-1">⚠️ เงื่อนไขการระงับสิทธิ์</h4>
-                    <p class="text-xs text-red-700">หากคะแนนเหลือน้อยกว่า <strong>60 คะแนน</strong> ระบบจะระงับสิทธิ์การยืมชั่วคราว ต้องติดต่อครูผู้ดูแลเพื่อขอปฏิบัติหน้าที่ฟื้นฟูคะแนน</p>
-                </div>
+            <div class="flex-grow overflow-y-auto">
+                <table class="w-full text-left text-xs sm:text-sm">
+                    <thead>
+                        <tr class="bg-slate-50 text-slate-500 uppercase text-[11px]">
+                            <th class="p-2.5">อุปกรณ์</th>
+                            <th class="p-2.5">จำนวน</th>
+                            <th class="p-2.5">กำหนดคืน</th>
+                            <th class="p-2.5 text-center">สถานะ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="studentHistTable" class="divide-y divide-slate-100">
+                        <!-- JS Rendered -->
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
 
-    <!-- Modal: ตรวจรับ & หักคะแนนโดย Admin -->
-    <div id="penaltyModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
-        <div class="bg-white rounded-2xl max-w-md w-full p-5 sm:p-6 shadow-2xl relative">
-            <button onclick="closeModal('penaltyModal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600">
-                <i class="fa-solid fa-xmark text-xl"></i>
-            </button>
-            <h3 class="text-base sm:text-lg font-bold text-brand-navy mb-1 flex items-center gap-2">
-                <span>⚖️</span> ตรวจรับอุปกรณ์ & ตัดคะแนน
-            </h3>
-            <p id="penaltyStudentInfo" class="text-xs text-slate-500 mb-4"></p>
-
-            <form onsubmit="confirmReturnWithPenalty(event)" class="space-y-3 sm:space-y-4">
-                <input type="hidden" id="penaltyRecordId">
-                <div>
-                    <label class="block text-xs sm:text-sm font-semibold text-slate-700 mb-1">สภาพการส่งคืน</label>
-                    <select id="returnCondition" onchange="autoFillPenalty()" class="w-full px-3 py-2 text-xs sm:text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-blue outline-none">
-                        <option value="NORMAL">✅ ปกติ (สมบูรณ์/ตรงเวลา - ไม่หักคะแนน)</option>
-                        <option value="LATE">⏱️ ส่งคืนช้ากว่ากำหนด (หัก 10 คะแนน)</option>
-                        <option value="DAMAGED">🛠️ อุปกรณ์ชำรุดเสียหาย (หัก 25 คะแนน)</option>
-                        <option value="LOST">🚨 อุปกรณ์สูญหาย (หัก 50 คะแนน)</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-xs sm:text-sm font-semibold text-slate-700 mb-1">คะแนนที่ต้องการหัก</label>
-                    <input type="number" id="penaltyPoints" min="0" max="100" value="0" required class="w-full px-3 py-2 text-xs sm:text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-blue outline-none">
-                </div>
-                <div>
-                    <label class="block text-xs sm:text-sm font-semibold text-slate-700 mb-1">หมายเหตุเพิ่มเติม</label>
-                    <input type="text" id="penaltyNote" placeholder="เช่น บอลรั่วซึม, คืนช้า 2 วัน" class="w-full px-3 py-2 text-xs sm:text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-blue outline-none">
-                </div>
-                <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 rounded-xl shadow transition text-xs sm:text-sm">
-                    บันทึกการรับคืน
-                </button>
-            </form>
-        </div>
-    </div>
-
-    <!-- Modal: เข้าสู่ระบบ (Login) -->
-    <div id="loginModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
-        <div class="bg-white rounded-2xl max-w-md w-full p-5 sm:p-6 shadow-xl relative">
-            <button onclick="closeModal('loginModal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600">
-                <i class="fa-solid fa-xmark text-xl"></i>
-            </button>
-            <div class="flex items-center gap-3 mb-2">
-                <img src="logo.png" onerror="this.onerror=null; this.style.display='none'" alt="Logo" class="w-9 h-9 object-contain">
-                <div>
-                    <h3 class="text-base sm:text-lg font-bold text-brand-navy">เข้าสู่ระบบนักเรียน</h3>
-                    <p class="text-xs text-slate-500">โรงเรียนสามร้อยยอดวิทยาคม</p>
-                </div>
-            </div>
-
-            <form onsubmit="handleLogin(event)" class="space-y-3.5 mt-4">
-                <div>
-                    <label class="block text-xs sm:text-sm font-semibold text-slate-700 mb-1">รหัสประจำตัวนักเรียน / Admin ID</label>
-                    <input type="text" id="loginStudentId" required placeholder="กรอกรหัสประจำตัวนักเรียน" class="w-full px-3.5 py-2 text-xs sm:text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-blue outline-none">
-                </div>
-                <div>
-                    <label class="block text-xs sm:text-sm font-semibold text-slate-700 mb-1">รหัส PIN</label>
-                    <input type="password" id="loginPin" required maxlength="6" placeholder="••••••" class="w-full px-3.5 py-2 text-xs sm:text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-blue outline-none">
-                </div>
-                <button type="submit" class="w-full bg-brand-navy hover:bg-brand-blue text-white font-semibold py-2.5 rounded-xl shadow transition border-b-2 border-amber-400 text-xs sm:text-sm">
-                    🔑 เข้าสู่ระบบ
-                </button>
-            </form>
-            <div class="mt-4 text-center text-xs sm:text-sm text-slate-600">
-                ยังไม่มีบัญชีนักเรียน? <button onclick="switchModal('loginModal', 'registerModal')" class="text-brand-blue font-semibold hover:underline">ลงทะเบียนที่นี่</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal: ลงทะเบียน (Register) -->
-    <div id="registerModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
-        <div class="bg-white rounded-2xl max-w-md w-full p-5 sm:p-6 shadow-xl relative max-h-[90vh] overflow-y-auto">
-            <button onclick="closeModal('registerModal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600">
-                <i class="fa-solid fa-xmark text-xl"></i>
-            </button>
-            <div class="flex items-center gap-3 mb-2">
-                <img src="logo.png" onerror="this.onerror=null; this.style.display='none'" alt="Logo" class="w-9 h-9 object-contain">
-                <div>
-                    <h3 class="text-base sm:text-lg font-bold text-brand-navy">ลงทะเบียนนักเรียนใหม่</h3>
-                    <p class="text-xs text-slate-500">โรงเรียนสามร้อยยอดวิทยาคม</p>
-                </div>
-            </div>
-
-            <form onsubmit="handleRegister(event)" class="space-y-3.5 mt-4">
-                <div>
-                    <label class="block text-xs sm:text-sm font-semibold text-slate-700 mb-1">รหัสประจำตัวนักเรียน <span class="text-red-500">*</span></label>
-                    <input type="text" id="regStudentId" required maxlength="5" placeholder="กรอกรหัสประจำตัวนักเรียน 5 หลัก" class="w-full px-3.5 py-2 text-xs sm:text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-blue outline-none">
-                </div>
-                <div>
-                    <label class="block text-xs sm:text-sm font-semibold text-slate-700 mb-1">ชื่อ - นามสกุล <span class="text-red-500">*</span></label>
-                    <input type="text" id="regFullName" placeholder="นาย/นางสาว/เด็กชาย/เด็กหญิง..." required class="w-full px-3.5 py-2 text-xs sm:text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-blue outline-none">
-                </div>
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-xs sm:text-sm font-semibold text-slate-700 mb-1">ชั้นเรียน <span class="text-red-500">*</span></label>
-                        <input type="text" id="regGrade" placeholder="เช่น ม.3/1" required class="w-full px-3.5 py-2 text-xs sm:text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-blue outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-xs sm:text-sm font-semibold text-slate-700 mb-1">เลขที่ <span class="text-red-500">*</span></label>
-                        <input type="number" id="regRoomNumber" placeholder="เช่น 12" min="1" max="60" required class="w-full px-3.5 py-2 text-xs sm:text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-blue outline-none">
-                    </div>
-                </div>
-                <div>
-                    <label class="block text-xs sm:text-sm font-semibold text-slate-700 mb-1">ตั้งรหัส PIN ตัวเลข (4-6 ตัว) <span class="text-red-500">*</span></label>
-                    <input type="password" id="regPin" required maxlength="6" placeholder="รหัส PIN 4-6 หลัก" class="w-full px-3.5 py-2 text-xs sm:text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-blue outline-none">
-                </div>
-                <div>
-                    <label class="block text-xs sm:text-sm font-semibold text-slate-700 mb-1">ยืนยันรหัส PIN <span class="text-red-500">*</span></label>
-                    <input type="password" id="regPinConfirm" required maxlength="6" placeholder="กรอกรหัส PIN อีกครั้ง" class="w-full px-3.5 py-2 text-xs sm:text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-blue outline-none">
-                </div>
-
-                <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 rounded-xl shadow transition flex items-center justify-center gap-2 text-xs sm:text-sm">
-                    ✨ ยืนยันการลงทะเบียน
-                </button>
-            </form>
-            <div class="mt-4 text-center text-xs sm:text-sm text-slate-600">
-                มีบัญชีแล้ว? <button onclick="switchModal('registerModal', 'loginModal')" class="text-brand-blue font-semibold hover:underline">เข้าสู่ระบบ</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal: แสดงภาพรูปแนบขยายใหญ่ -->
-    <div id="imageModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm hidden items-center justify-center z-50 p-4" onclick="closeModal('imageModal')">
-        <div class="max-w-2xl w-full bg-white p-2 rounded-2xl shadow-2xl relative" onclick="event.stopPropagation()">
-            <button onclick="closeModal('imageModal')" class="absolute top-3 right-3 bg-white text-slate-600 rounded-full w-8 h-8 flex items-center justify-center shadow hover:bg-slate-100">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
-            <img id="modalFullImage" src="" alt="รูปภาพหลักฐาน" class="w-full h-auto rounded-xl max-h-[80vh] object-contain">
-        </div>
-    </div>
-
-    <!-- Footer -->
-    <footer class="bg-white border-t border-slate-200 py-4 mt-auto">
-        <div class="max-w-7xl mx-auto px-4 text-center text-xs text-slate-500 flex items-center justify-center gap-2">
-            <img src="logo.png" onerror="this.onerror=null; this.style.display='none'" alt="Logo" class="w-4 h-4 object-contain">
-            <span>&copy; งานพลศึกษา โรงเรียนสามร้อยยอดวิทยาคม</span>
-        </div>
+    <!-- FOOTER -->
+    <footer class="bg-white border-t border-slate-200 py-4 text-center text-xs text-slate-400 mt-auto">
+        &copy; ระบบยืม-คืนอุปกรณ์กีฬา โรงเรียนสามร้อยยอดวิทยาคม
     </footer>
 
-    <!-- JavaScript Application Logic -->
+
+    <!-- JAVASCRIPT CORE LOGIC -->
     <script>
-        // Data & Session Storage Logic
+        // Default Mock Admin Credentials
+        const ADMIN_CREDS = { studentId: 'ADMIN', pin: '8888', fullName: 'ผู้ดูแลระบบ (งานกีฬา)', role: 'admin' };
+
+        // Core State
         let currentUser = JSON.parse(localStorage.getItem('sr_currentUser')) || null;
         let students = JSON.parse(localStorage.getItem('sr_students')) || [];
-        let borrowRecords = JSON.parse(localStorage.getItem('sr_borrows')) || [];
-        let loginLogs = JSON.parse(localStorage.getItem('sr_loginLogs')) || [];
-        let currentUploadedImage = '';
+        let equipment = JSON.parse(localStorage.getItem('sr_equipment')) || [];
+        let borrows = JSON.parse(localStorage.getItem('sr_borrows')) || [];
 
-        const ADMIN_ACCOUNT = {
-            studentId: 'ADMIN',
-            pin: '8888',
-            fullName: 'ผู้ดูแลระบบ (งานกีฬา)',
-            grade: 'ครูผู้ดูแล',
-            roomNumber: 'ห้องพักครู',
-            score: 100,
-            isAdmin: true
-        };
-
+        // App Initialization
         document.addEventListener('DOMContentLoaded', () => {
-            initDefaultDateTime();
-            updateUI();
-            renderTable();
+            initDefaultEquipment();
+            renderApp();
         });
 
-        function initDefaultDateTime() {
-            const now = new Date();
-            const nowIso = new Date(now.getTime() - (now.getTimezoneOffset() * 60000)).toISOString().slice(0, 16);
-            
-            const defaultReturn = new Date(now.getTime() + (3 * 24 * 60 * 60 * 1000));
-            const defaultReturnIso = new Date(defaultReturn.getTime() - (defaultReturn.getTimezoneOffset() * 60000)).toISOString().slice(0, 16);
-
-            document.getElementById('borrowDateTime').value = nowIso;
-            document.getElementById('returnDateTime').value = defaultReturnIso;
+        // Initialize Default Equipment Stock if Empty
+        function initDefaultEquipment() {
+            if (equipment.length === 0) {
+                equipment = [
+                    { id: 1, name: 'ลูกฟุตบอล', category: 'ฟุตบอล', totalQty: 10, emoji: '⚽' },
+                    { id: 2, name: 'ไม้ปิงปอง', category: 'ปิงปอง', totalQty: 15, emoji: '🏓' },
+                    { id: 3, name: 'ตะกร้อ', category: 'เซปักตะกร้อ', totalQty: 12, emoji: '🎯' },
+                    { id: 4, name: 'ลูกบาสเกตบอล', category: 'บาสเกตบอล', totalQty: 8, emoji: '🏀' },
+                    { id: 5, name: 'กรวยฝึกซ้อม', category: 'อุปกรณ์ซ้อม', totalQty: 30, emoji: '📐' },
+                    { id: 6, name: 'ลูกเปตอง', category: 'เปตอง', totalQty: 20, emoji: '⚪' },
+                    { id: 7, name: 'เน็ทวอลเลย์บอล', category: 'วอลเลย์บอล', totalQty: 4, emoji: '🥅' },
+                    { id: 8, name: 'ลูกวอลเลย์บอล', category: 'วอลเลย์บอล', totalQty: 10, emoji: '🏐' },
+                    { id: 9, name: 'ลูกฟุตซอล', category: 'ฟุตซอล', totalQty: 8, emoji: '👟' }
+                ];
+                saveStorage();
+            }
         }
 
-        function addLoginLog(studentId, fullName) {
-            const newLog = {
-                timestamp: new Date().toLocaleString('th-TH'),
-                studentId: String(studentId),
-                fullName: fullName
-            };
-            loginLogs.unshift(newLog);
-            if (loginLogs.length > 100) loginLogs.pop();
-            localStorage.setItem('sr_loginLogs', JSON.stringify(loginLogs));
+        function saveStorage() {
+            localStorage.setItem('sr_students', JSON.stringify(students));
+            localStorage.setItem('sr_equipment', JSON.stringify(equipment));
+            localStorage.setItem('sr_borrows', JSON.stringify(borrows));
+            if (currentUser) localStorage.setItem('sr_currentUser', JSON.stringify(currentUser));
         }
 
-        function updateUI() {
-            const userNav = document.getElementById('userNav');
-            const authNotice = document.getElementById('authNotice');
-            const banNotice = document.getElementById('banNotice');
-            const submitBorrowBtn = document.getElementById('submitBorrowBtn');
+        // Main View Routing & RBAC Enforcement
+        function renderApp() {
+            const viewAuth = document.getElementById('viewAuth');
+            const viewStudent = document.getElementById('viewStudent');
+            const viewAdmin = document.getElementById('viewAdmin');
+            const navSession = document.getElementById('navUserSession');
 
-            document.getElementById('statTotalStudents').textContent = `${students.length} คน`;
-
-            if (currentUser) {
-                if (!currentUser.isAdmin) {
-                    const latestData = students.find(s => String(s.studentId).trim() === String(currentUser.studentId).trim());
-                    if (latestData) {
-                        currentUser = { ...latestData };
-                        localStorage.setItem('sr_currentUser', JSON.stringify(currentUser));
-                    }
-                }
-
-                const scoreColor = currentUser.score >= 80 ? 'text-emerald-300' : currentUser.score >= 60 ? 'text-amber-300' : 'text-red-300';
-                
-                userNav.innerHTML = `
-                    <div class="flex items-center space-x-2 bg-white/10 px-2.5 py-1.5 rounded-xl border border-amber-400/40 shadow-sm">
-                        <i class="fa-solid fa-user-circle ${currentUser.isAdmin ? 'text-amber-400' : 'text-blue-200'} text-base sm:text-lg"></i>
-                        <div class="text-[11px] sm:text-xs text-left">
-                            <div class="font-bold text-white flex items-center gap-1">
-                                ${currentUser.fullName.split(' ')[0]}
-                                ${currentUser.isAdmin ? '<span class="bg-amber-400 text-brand-navy text-[9px] px-1 py-0.2 rounded font-extrabold">ADMIN</span>' : ''}
-                            </div>
-                            <div class="text-slate-300 text-[10px] sm:text-[11px]">
-                                ${currentUser.isAdmin ? 'ผู้ดูแลระบบ' : `<span class="${scoreColor} font-bold">⭐ ${currentUser.score}</span>`}
-                            </div>
-                        </div>
-                        ${currentUser.isAdmin ? `
-                            <button onclick="openAdminModal()" class="bg-amber-400 hover:bg-amber-300 text-brand-navy text-[10px] sm:text-xs px-2 py-1 rounded-lg font-bold ml-1 transition shadow">
-                                👑 แดชบอร์ด
-                            </button>
-                        ` : ''}
-                        <button onclick="logout()" title="ออกจากระบบ" class="text-red-300 hover:text-red-100 ml-1 p-0.5">
-                            <i class="fa-solid fa-right-from-bracket text-xs sm:text-sm"></i>
-                        </button>
-                    </div>
-                `;
-                
-                authNotice.classList.add('hidden');
-
-                if (!currentUser.isAdmin && (currentUser.score < 60 || currentUser.isBanned)) {
-                    banNotice.classList.remove('hidden');
-                    submitBorrowBtn.disabled = true;
-                } else {
-                    banNotice.classList.add('hidden');
-                    submitBorrowBtn.disabled = false;
-                }
-
+            if (!currentUser) {
+                // Not logged in -> Show ONLY Auth View
+                viewAuth.classList.remove('hidden');
+                viewStudent.classList.add('hidden');
+                viewAdmin.classList.add('hidden');
+                navSession.classList.add('hidden');
             } else {
-                userNav.innerHTML = `
-                    <button onclick="openModal('loginModal')" class="bg-amber-400 hover:bg-amber-300 text-brand-navy text-xs font-bold px-3 py-1.5 sm:py-2 rounded-xl transition shadow">
-                        <i class="fa-solid fa-right-to-bracket mr-1"></i> เข้าสู่ระบบ
-                    </button>
-                `;
-                authNotice.classList.remove('hidden');
-                banNotice.classList.add('hidden');
-                submitBorrowBtn.disabled = true;
+                navSession.classList.remove('hidden');
+                navSession.classList.add('flex');
+                document.getElementById('navUserName').textContent = currentUser.fullName;
+                document.getElementById('navUserSub').textContent = currentUser.role === 'admin' ? 'ผู้ดูแลระบบ' : `ID: ${currentUser.studentId}`;
+
+                if (currentUser.role === 'admin') {
+                    // Admin Logged In -> Show ONLY Admin Portal
+                    viewAuth.classList.add('hidden');
+                    viewStudent.classList.add('hidden');
+                    viewAdmin.classList.remove('hidden');
+                    renderAdminPortal();
+                } else {
+                    // Student Logged In -> Show ONLY Student View
+                    viewAuth.classList.add('hidden');
+                    viewStudent.classList.remove('hidden');
+                    viewAdmin.classList.add('hidden');
+                    renderStudentPortal();
+                }
+            }
+        }
+
+        // Auth Tabs Toggle
+        function switchAuthTab(tab) {
+            const formLogin = document.getElementById('formLogin');
+            const formRegister = document.getElementById('formRegister');
+            const btnLogin = document.getElementById('btnTabLogin');
+            const btnReg = document.getElementById('btnTabRegister');
+
+            if (tab === 'login') {
+                formLogin.classList.remove('hidden');
+                formRegister.classList.add('hidden');
+                btnLogin.className = "flex-1 py-2.5 rounded-xl transition bg-amber-400 text-navy-950 font-bold";
+                btnReg.className = "flex-1 py-2.5 rounded-xl transition text-slate-300 hover:text-white";
+            } else {
+                formLogin.classList.add('hidden');
+                formRegister.classList.remove('hidden');
+                btnReg.className = "flex-1 py-2.5 rounded-xl transition bg-amber-400 text-navy-950 font-bold";
+                btnLogin.className = "flex-1 py-2.5 rounded-xl transition text-slate-300 hover:text-white";
+            }
+        }
+
+        // Process Register
+        function processRegister(e) {
+            e.preventDefault();
+            const studentId = String(document.getElementById('regId').value).trim();
+            const name = document.getElementById('regName').value.trim();
+            const grade = document.getElementById('regGrade').value.trim();
+            const roomNo = document.getElementById('regRoomNo').value.trim();
+            const phone = document.getElementById('regPhone').value.trim();
+            const pin = String(document.getElementById('regPin').value).trim();
+
+            if (!/^\d{5}$/.test(studentId)) {
+                alert('กรุณากรอกรหัสประจำตัวนักเรียนเป็นตัวเลข 5 หลักให้ถูกต้อง (เช่น 00123)');
+                return;
             }
 
-            const activeCount = borrowRecords.filter(r => r.status === 'กำลังยืม').length;
-            const returnedCount = borrowRecords.filter(r => r.status === 'คืนแล้ว').length;
-            
-            document.getElementById('statActiveBorrows').textContent = `${activeCount} รายการ`;
-            document.getElementById('statReturnedBorrows').textContent = `${returnedCount} รายการ`;
+            if (students.some(s => String(s.studentId).trim() === studentId)) {
+                alert('รหัสประจำตัวนักเรียนนี้ลงทะเบียนไว้ในระบบแล้ว!');
+                return;
+            }
+
+            const newStudent = { studentId, fullName: name, grade, roomNumber: roomNo, phone, pin, role: 'student' };
+            students.push(newStudent);
+            saveStorage();
+
+            alert('ลงทะเบียนสำเร็จ! กรุณาเข้าสู่ระบบด้วยรหัสประจำตัวนักเรียน');
+            switchAuthTab('login');
+            document.getElementById('loginId').value = studentId;
         }
 
+        // Process Login
+        function processLogin(e) {
+            e.preventDefault();
+            const inputId = String(document.getElementById('loginId').value).trim();
+            const inputPin = String(document.getElementById('loginPin').value).trim();
+
+            // Admin Login Check
+            if (inputId.toUpperCase() === ADMIN_CREDS.studentId && inputPin === ADMIN_CREDS.pin) {
+                currentUser = ADMIN_CREDS;
+                saveStorage();
+                renderApp();
+                return;
+            }
+
+            // Student Login Check
+            const found = students.find(s => String(s.studentId).trim() === inputId && String(s.pin).trim() === inputPin);
+            if (found) {
+                currentUser = found;
+                saveStorage();
+                renderApp();
+            } else {
+                alert('รหัสประจำตัวนักเรียน หรือ รหัสผ่าน ไม่ถูกต้อง!');
+            }
+        }
+
+        function handleLogout() {
+            if (confirm('คุณต้องการออกจากระบบใช่หรือไม่?')) {
+                currentUser = null;
+                localStorage.removeItem('sr_currentUser');
+                renderApp();
+            }
+        }
+
+
+        // ================= STOCK CALCULATIONS =================
+        function getEquipmentStockInfo(eqId) {
+            const item = equipment.find(e => e.id === eqId);
+            if (!item) return { total: 0, borrowed: 0, available: 0 };
+
+            // Currently Issued/Approved Borrows
+            const borrowedQty = borrows
+                .filter(b => b.equipmentId === eqId && (b.status === 'issued' || b.status === 'approved'))
+                .reduce((sum, b) => sum + parseInt(b.quantity), 0);
+
+            return {
+                total: item.totalQty,
+                borrowed: borrowedQty,
+                available: Math.max(0, item.totalQty - borrowedQty)
+            };
+        }
+
+
+        // ================= STUDENT PORTAL LOGIC =================
+        function renderStudentPortal() {
+            document.getElementById('studentProfileName').textContent = currentUser.fullName;
+            document.getElementById('studentProfileMeta').textContent = `รหัสประจำตัว: ${currentUser.studentId} | ชั้น ${currentUser.grade} เลขที่ ${currentUser.roomNumber} | Tel: ${currentUser.phone}`;
+
+            // Overall Stats Calculation
+            let totalAll = 0, totalAvailable = 0, totalBorrowed = 0;
+            equipment.forEach(eq => {
+                const stock = getEquipmentStockInfo(eq.id);
+                totalAll += stock.total;
+                totalAvailable += stock.available;
+                totalBorrowed += stock.borrowed;
+            });
+
+            document.getElementById('studentStatTotal').textContent = totalAll;
+            document.getElementById('studentStatAvailable').textContent = totalAvailable;
+            document.getElementById('studentStatBorrowed').textContent = totalBorrowed;
+
+            // Render Select Options for Form
+            const select = document.getElementById('borrowEqSelect');
+            select.innerHTML = '<option value="">-- เลือกอุปกรณ์ --</option>' + equipment.map(eq => {
+                const stock = getEquipmentStockInfo(eq.id);
+                return `<option value="${eq.id}">${eq.emoji} ${eq.name} (คงเหลือ: ${stock.available} ชิ้น)</option>`;
+            }).join('');
+
+            updateAvailableStockBadge();
+            initStudentDates();
+            renderStudentHistoryTable();
+        }
+
+        function initStudentDates() {
+            const now = new Date();
+            const nowIso = new Date(now.getTime() - (now.getTimezoneOffset() * 60000)).toISOString().slice(0, 16);
+            const returnIso = new Date(now.getTime() + (3 * 24 * 60 * 60 * 1000) - (now.getTimezoneOffset() * 60000)).toISOString().slice(0, 16);
+
+            document.getElementById('borrowDate').value = nowIso;
+            document.getElementById('returnDate').value = returnIso;
+        }
+
+        function updateAvailableStockBadge() {
+            const eqId = parseInt(document.getElementById('borrowEqSelect').value);
+            const badge = document.getElementById('stockBadge');
+            if (eqId) {
+                const stock = getEquipmentStockInfo(eqId);
+                badge.textContent = `พร้อมให้ยืมขณะนี้: ${stock.available} ชิ้น จากทั้งหมด ${stock.total} ชิ้น`;
+            } else {
+                badge.textContent = '';
+            }
+        }
+
+        function handleStudentSubmitBorrow(e) {
+            e.preventDefault();
+            const eqId = parseInt(document.getElementById('borrowEqSelect').value);
+            const qty = parseInt(document.getElementById('borrowQty').value);
+            const borrowDate = document.getElementById('borrowDate').value;
+            const returnDate = document.getElementById('returnDate').value;
+
+            const stock = getEquipmentStockInfo(eqId);
+            if (qty > stock.available) {
+                alert(`จำนวนอุปกรณ์ไม่เพียงพอ! ขณะนี้มีพร้อมให้ยืมเพียง ${stock.available} ชิ้น`);
+                return;
+            }
+
+            const bDate = new Date(borrowDate);
+            const rDate = new Date(returnDate);
+            const diffDays = (rDate - bDate) / (1000 * 3600 * 24);
+
+            if (diffDays <= 0) {
+                alert('วันกำหนดคืนต้องอยู่หลังวันเวลายืม!');
+                return;
+            }
+
+            if (diffDays > 7.1) {
+                alert('ระยะเวลาการยืมสูงสุดไม่เกิน 7 วัน!');
+                return;
+            }
+
+            const eq = equipment.find(e => e.id === eqId);
+            const newBorrow = {
+                id: Date.now(),
+                studentId: currentUser.studentId,
+                studentName: currentUser.fullName,
+                grade: currentUser.grade,
+                roomNumber: currentUser.roomNumber,
+                phone: currentUser.phone,
+                equipmentId: eqId,
+                equipmentName: `${eq.emoji} ${eq.name}`,
+                quantity: qty,
+                borrowTime: borrowDate,
+                returnTime: returnDate,
+                status: 'pending', // pending, approved, issued, returned, rejected
+                adminNote: ''
+            };
+
+            borrows.unshift(newBorrow);
+            saveStorage();
+
+            alert('ยื่นคำขอยืมอุปกรณ์สำเร็จ! กรุณารอแอดมินตรวจสอบและอนุมัติ');
+            renderStudentPortal();
+        }
+
+        function renderStudentHistoryTable() {
+            const tbody = document.getElementById('studentBorrowTable');
+            const myBorrows = borrows.filter(b => String(b.studentId).trim() === String(currentUser.studentId).trim());
+
+            if (myBorrows.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="p-6 text-center text-slate-400">ยังไม่มีประวัติคำขอยืมอุปกรณ์</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = myBorrows.map(b => `
+                <tr class="hover:bg-slate-50">
+                    <td class="p-3 font-semibold text-navy-900">${b.equipmentName}</td>
+                    <td class="p-3 font-bold text-amber-600">x${b.quantity}</td>
+                    <td class="p-3 text-xs text-slate-500">${formatThaiDate(b.returnTime)}</td>
+                    <td class="p-3 text-center">${getStatusBadge(b.status)}</td>
+                </tr>
+            `).join('');
+        }
+
+
+        // ================= ADMIN PORTAL LOGIC =================
+        function renderAdminPortal() {
+            // Stats Calculation
+            let totalAll = 0, totalAvailable = 0, totalBorrowed = 0;
+            equipment.forEach(eq => {
+                const stock = getEquipmentStockInfo(eq.id);
+                totalAll += stock.total;
+                totalAvailable += stock.available;
+                totalBorrowed += stock.borrowed;
+            });
+
+            const pendingCount = borrows.filter(b => b.status === 'pending').length;
+
+            document.getElementById('adminStatTotal').textContent = totalAll;
+            document.getElementById('adminStatAvailable').textContent = totalAvailable;
+            document.getElementById('adminStatBorrowed').textContent = totalBorrowed;
+            document.getElementById('adminStatPending').textContent = pendingCount;
+
+            renderAdminRequests();
+            renderAdminEquipmentGrid();
+            renderAdminStudents();
+        }
+
+        function switchAdminSubTab(tab) {
+            document.getElementById('adminSubRequests').classList.add('hidden');
+            document.getElementById('adminSubEquipment').classList.add('hidden');
+            document.getElementById('adminSubStudents').classList.add('hidden');
+
+            document.getElementById('adminTab1').className = "px-4 py-3 font-medium text-slate-500 hover:text-navy-900 whitespace-nowrap";
+            document.getElementById('adminTab2').className = "px-4 py-3 font-medium text-slate-500 hover:text-navy-900 whitespace-nowrap";
+            document.getElementById('adminTab3').className = "px-4 py-3 font-medium text-slate-500 hover:text-navy-900 whitespace-nowrap";
+
+            if (tab === 'requests') {
+                document.getElementById('adminSubRequests').classList.remove('hidden');
+                document.getElementById('adminTab1').className = "px-4 py-3 font-bold border-b-2 border-navy-900 text-navy-900 whitespace-nowrap";
+            } else if (tab === 'equipment') {
+                document.getElementById('adminSubEquipment').classList.remove('hidden');
+                document.getElementById('adminTab2').className = "px-4 py-3 font-bold border-b-2 border-navy-900 text-navy-900 whitespace-nowrap";
+            } else {
+                document.getElementById('adminSubStudents').classList.remove('hidden');
+                document.getElementById('adminTab3').className = "px-4 py-3 font-bold border-b-2 border-navy-900 text-navy-900 whitespace-nowrap";
+            }
+        }
+
+        // Admin Tab 1: Render Requests & Actions
+        function renderAdminRequests() {
+            const tbody = document.getElementById('adminRequestTable');
+            const keyword = document.getElementById('adminSearchRequest').value.toLowerCase();
+
+            const filtered = borrows.filter(b => 
+                b.studentName.toLowerCase().includes(keyword) || 
+                b.equipmentName.toLowerCase().includes(keyword) ||
+                String(b.studentId).includes(keyword)
+            );
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-slate-400">ไม่พบคำขอยืมอุปกรณ์</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(b => `
+                <tr class="hover:bg-slate-50">
+                    <td class="p-3">
+                        <div class="font-bold text-navy-900">${b.studentName}</div>
+                        <div class="text-[11px] text-slate-400">ID: ${b.studentId} | ${b.grade} (เลขที่ ${b.roomNumber}) | Tel: ${b.phone}</div>
+                    </td>
+                    <td class="p-3 font-semibold text-slate-800">
+                        ${b.equipmentName} <span class="text-amber-600 font-bold ml-1">x${b.quantity}</span>
+                    </td>
+                    <td class="p-3 text-xs text-slate-500">${formatThaiDate(b.returnTime)}</td>
+                    <td class="p-3 text-center">${getStatusBadge(b.status)}</td>
+                    <td class="p-3 text-right">
+                        ${getAdminActionButtons(b)}
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function getAdminActionButtons(b) {
+            if (b.status === 'pending') {
+                return `
+                    <button onclick="updateBorrowStatus(${b.id}, 'approved')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-2.5 py-1 rounded-lg font-bold shadow transition">อนุมัติ</button>
+                    <button onclick="updateBorrowStatus(${b.id}, 'rejected')" class="bg-red-600 hover:bg-red-700 text-white text-xs px-2.5 py-1 rounded-lg font-bold shadow transition ml-1">ปฏิเสธ</button>
+                `;
+            } else if (b.status === 'approved') {
+                return `
+                    <button onclick="updateBorrowStatus(${b.id}, 'issued')" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs px-2.5 py-1 rounded-lg font-bold shadow transition">จ่ายอุปกรณ์</button>
+                `;
+            } else if (b.status === 'issued') {
+                return `
+                    <button onclick="updateBorrowStatus(${b.id}, 'returned')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-2.5 py-1 rounded-lg font-bold shadow transition">ยืนยันการคืน</button>
+                `;
+            } else {
+                return `<span class="text-xs text-slate-400">-</span>`;
+            }
+        }
+
+        function updateBorrowStatus(id, newStatus) {
+            const item = borrows.find(b => b.id === id);
+            if (item) {
+                if (newStatus === 'rejected') {
+                    const reason = prompt('ระบุเหตุผลในการไม่อนุมัติคำขอ:');
+                    if (reason !== null) item.adminNote = reason;
+                }
+                item.status = newStatus;
+                saveStorage();
+                renderAdminPortal();
+            }
+        }
+
+        // Admin Tab 2: Equipment CRUD
+        function renderAdminEquipmentGrid() {
+            const grid = document.getElementById('adminEquipmentGrid');
+            grid.innerHTML = equipment.map(eq => {
+                const stock = getEquipmentStockInfo(eq.id);
+                return `
+                    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex justify-between items-center">
+                        <div class="flex items-center gap-3">
+                            <div class="w-12 h-12 bg-slate-100 rounded-xl flex items-center justify-center text-2xl">${eq.emoji}</div>
+                            <div>
+                                <h4 class="font-bold text-navy-900 text-sm">${eq.name}</h4>
+                                <p class="text-xs text-slate-400">${eq.category}</p>
+                                <p class="text-xs font-bold text-emerald-600 mt-0.5">พร้อมยืม ${stock.available} / ทั้งหมด ${stock.total}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-1">
+                            <button onclick="openEditEquipmentModal(${eq.id})" class="text-amber-600 hover:bg-amber-50 p-2 rounded-lg text-xs"><i class="fa-solid fa-pen"></i></button>
+                            <button onclick="deleteEquipment(${eq.id})" class="text-red-600 hover:bg-red-50 p-2 rounded-lg text-xs"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function openAddEquipmentModal() {
+            document.getElementById('modalEquipmentTitle').textContent = 'เพิ่มอุปกรณ์กีฬาใหม่';
+            document.getElementById('eqEditId').value = '';
+            document.getElementById('eqName').value = '';
+            document.getElementById('eqCategory').value = '';
+            document.getElementById('eqEmoji').value = '⚽';
+            document.getElementById('eqTotalQty').value = 10;
+            openModal('modalEquipment');
+        }
+
+        function openEditEquipmentModal(id) {
+            const eq = equipment.find(e => e.id === id);
+            if (eq) {
+                document.getElementById('modalEquipmentTitle').textContent = 'แก้ไขข้อมูลอุปกรณ์';
+                document.getElementById('eqEditId').value = eq.id;
+                document.getElementById('eqName').value = eq.name;
+                document.getElementById('eqCategory').value = eq.category;
+                document.getElementById('eqEmoji').value = eq.emoji;
+                document.getElementById('eqTotalQty').value = eq.totalQty;
+                openModal('modalEquipment');
+            }
+        }
+
+        function handleSaveEquipment(e) {
+            e.preventDefault();
+            const editId = document.getElementById('eqEditId').value;
+            const name = document.getElementById('eqName').value.trim();
+            const category = document.getElementById('eqCategory').value.trim();
+            const emoji = document.getElementById('eqEmoji').value.trim();
+            const totalQty = parseInt(document.getElementById('eqTotalQty').value);
+
+            if (editId) {
+                const eq = equipment.find(e => e.id === parseInt(editId));
+                if (eq) {
+                    eq.name = name;
+                    eq.category = category;
+                    eq.emoji = emoji;
+                    eq.totalQty = totalQty;
+                }
+            } else {
+                const newEq = {
+                    id: Date.now(),
+                    name,
+                    category,
+                    emoji: emoji || '⚽',
+                    totalQty
+                };
+                equipment.push(newEq);
+            }
+
+            saveStorage();
+            closeModal('modalEquipment');
+            renderAdminPortal();
+        }
+
+        function deleteEquipment(id) {
+            if (confirm('คุณต้องการลบอุปกรณ์นี้ออกจากระบบใช่หรือไม่?')) {
+                equipment = equipment.filter(e => e.id !== id);
+                saveStorage();
+                renderAdminPortal();
+            }
+        }
+
+        // Admin Tab 3: Students Roster
+        function renderAdminStudents() {
+            const tbody = document.getElementById('adminStudentTable');
+            const keyword = document.getElementById('adminSearchStudent').value.toLowerCase();
+
+            const filtered = students.filter(s => 
+                s.fullName.toLowerCase().includes(keyword) || 
+                String(s.studentId).includes(keyword)
+            );
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-slate-400">ไม่พบรายชื่อนักเรียน</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(s => `
+                <tr class="hover:bg-slate-50">
+                    <td class="p-3 font-bold text-navy-900">${s.studentId}</td>
+                    <td class="p-3 font-semibold">${s.fullName}</td>
+                    <td class="p-3 text-slate-500">${s.grade} (เลขที่ ${s.roomNumber})</td>
+                    <td class="p-3 text-slate-500">${s.phone}</td>
+                    <td class="p-3 text-right">
+                        <button onclick="viewStudentHistory('${s.studentId}')" class="bg-navy-900 hover:bg-navy-800 text-white text-xs px-2.5 py-1 rounded-lg font-bold shadow">ดูประวัติ</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function viewStudentHistory(studentId) {
+            const student = students.find(s => String(s.studentId).trim() === String(studentId).trim());
+            if (!student) return;
+
+            document.getElementById('histModalStudentName').textContent = `ประวัติการยืม: ${student.fullName}`;
+            document.getElementById('histModalStudentMeta').textContent = `รหัส: ${student.studentId} | ชั้น ${student.grade} เลขที่ ${student.roomNumber} | Tel: ${student.phone}`;
+
+            const studentBorrows = borrows.filter(b => String(b.studentId).trim() === String(studentId).trim());
+            const tbody = document.getElementById('studentHistTable');
+
+            if (studentBorrows.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="p-6 text-center text-slate-400">ไม่มีประวัติการยืมอุปกรณ์</td></tr>`;
+            } else {
+                tbody.innerHTML = studentBorrows.map(b => `
+                    <tr class="hover:bg-slate-50">
+                        <td class="p-2.5 font-semibold">${b.equipmentName}</td>
+                        <td class="p-2.5 font-bold text-amber-600">x${b.quantity}</td>
+                        <td class="p-2.5 text-xs text-slate-500">${formatThaiDate(b.returnTime)}</td>
+                        <td class="p-2.5 text-center">${getStatusBadge(b.status)}</td>
+                    </tr>
+                `).join('');
+            }
+
+            openModal('modalStudentHistory');
+        }
+
+
+        // ================= HELPERS & MODALS =================
         function openModal(id) {
             document.getElementById(id).classList.remove('hidden');
             document.getElementById(id).classList.add('flex');
@@ -677,425 +1003,7 @@
             document.getElementById(id).classList.remove('flex');
         }
 
-        function switchModal(fromId, toId) {
-            closeModal(fromId);
-            openModal(toId);
-        }
-
-        function toggleCustomEquipment() {
-            const select = document.getElementById('equipmentSelect');
-            const customBox = document.getElementById('customEquipmentBox');
-            const customInput = document.getElementById('customEquipmentInput');
-
-            if (select.value.includes('อื่นๆ')) {
-                customBox.classList.remove('hidden');
-                customInput.required = true;
-            } else {
-                customBox.classList.add('hidden');
-                customInput.required = false;
-            }
-        }
-
-        function previewImage(event) {
-            const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    currentUploadedImage = e.target.result;
-                    document.getElementById('imagePreview').src = e.target.result;
-                    document.getElementById('imagePreviewContainer').classList.remove('hidden');
-                };
-                reader.readAsDataURL(file);
-            }
-        }
-
-        function handleRegister(e) {
-            e.preventDefault();
-            const studentId = String(document.getElementById('regStudentId').value).trim();
-            const fullName = document.getElementById('regFullName').value.trim();
-            const grade = document.getElementById('regGrade').value.trim();
-            const roomNumber = document.getElementById('regRoomNumber').value.trim();
-            const pin = String(document.getElementById('regPin').value).trim();
-            const pinConfirm = String(document.getElementById('regPinConfirm').value).trim();
-
-            if (!/^\d{5}$/.test(studentId)) {
-                alert('กรุณากรอกรหัสประจำตัวนักเรียนเป็นตัวเลข 5 หลัก');
-                return;
-            }
-
-            if (!/^\d{4,6}$/.test(pin)) {
-                alert('กรุณาตั้งรหัส PIN เป็นตัวเลข 4 - 6 ตัวอักษร');
-                return;
-            }
-
-            if (pin !== pinConfirm) {
-                alert('รหัส PIN ยืนยันไม่ตรงกัน กรุณาตรวจสอบอีกครั้ง');
-                return;
-            }
-
-            if (students.some(s => String(s.studentId).trim() === studentId)) {
-                alert('รหัสประจำตัวนักเรียนนี้ลงทะเบียนไว้แล้ว');
-                return;
-            }
-
-            const newStudent = { 
-                studentId: studentId, 
-                fullName: fullName, 
-                grade: grade, 
-                roomNumber: roomNumber, 
-                pin: pin, 
-                score: 100, 
-                isBanned: false,
-                isAdmin: false 
-            };
-
-            students.push(newStudent);
-            localStorage.setItem('sr_students', JSON.stringify(students));
-
-            alert('ลงทะเบียนสำเร็จ! เข้าสู่ระบบด้วยรหัสประจำตัวและ PIN ของคุณ');
-            closeModal('registerModal');
-            openModal('loginModal');
-            document.getElementById('loginStudentId').value = studentId;
-            updateUI();
-        }
-
-        function handleLogin(e) {
-            e.preventDefault();
-            const studentIdInput = String(document.getElementById('loginStudentId').value).trim();
-            const pinInput = String(document.getElementById('loginPin').value).trim();
-
-            if (studentIdInput.toUpperCase() === ADMIN_ACCOUNT.studentId && pinInput === ADMIN_ACCOUNT.pin) {
-                currentUser = ADMIN_ACCOUNT;
-                localStorage.setItem('sr_currentUser', JSON.stringify(currentUser));
-                addLoginLog('ADMIN', 'ผู้ดูแลระบบ (งานกีฬา)');
-                updateUI();
-                closeModal('loginModal');
-                alert('เข้าสู่ระบบผู้ดูแลระบบสำเร็จ');
-                renderTable();
-                return;
-            }
-
-            const found = students.find(s => 
-                String(s.studentId).trim() === studentIdInput && 
-                String(s.pin).trim() === pinInput
-            );
-
-            if (found) {
-                if (found.isBanned) {
-                    alert('บัญชีนักเรียนนี้ถูกระงับสิทธิ์การยืมอุปกรณ์ กรุณาติดต่องานพลศึกษา');
-                    return;
-                }
-
-                currentUser = { ...found };
-                if (currentUser.score === undefined) currentUser.score = 100;
-                localStorage.setItem('sr_currentUser', JSON.stringify(currentUser));
-                
-                addLoginLog(found.studentId, found.fullName);
-                updateUI();
-                closeModal('loginModal');
-                alert(`ยินดีต้อนรับ ${currentUser.fullName}`);
-                renderTable();
-            } else {
-                alert('รหัสประจำตัวนักเรียน หรือ รหัส PIN ไม่ถูกต้อง!');
-            }
-        }
-
-        function logout() {
-            if (confirm('คุณต้องการออกจากระบบใช่หรือไม่?')) {
-                currentUser = null;
-                localStorage.removeItem('sr_currentUser');
-                updateUI();
-                renderTable();
-            }
-        }
-
-        function handleBorrow(e) {
-            e.preventDefault();
-            if (!currentUser) {
-                alert('กรุณาเข้าสู่ระบบก่อนยืมอุปกรณ์');
-                return;
-            }
-
-            if (!currentUser.isAdmin && currentUser.score < 60) {
-                alert('คุณถูกระงับสิทธิ์การยืมเนื่องจากคะแนนต่ำกว่า 60 คะแนน');
-                return;
-            }
-
-            const borrowTime = document.getElementById('borrowDateTime').value;
-            const returnTime = document.getElementById('returnDateTime').value;
-
-            const bDate = new Date(borrowTime);
-            const rDate = new Date(returnTime);
-            const diffDays = (rDate - bDate) / (1000 * 3600 * 24);
-
-            if (diffDays <= 0) {
-                alert('วันกำหนดคืนต้องอยู่หลังวันเวลายืม');
-                return;
-            }
-
-            if (diffDays > 7.1) {
-                alert('⚠️ ยืมอุปกรณ์ได้สูงสุดไม่เกิน 7 วันเท่านั้น');
-                return;
-            }
-
-            const selectVal = document.getElementById('equipmentSelect').value;
-            const item = selectVal.includes('อื่นๆ')
-                ? '📦 ' + document.getElementById('customEquipmentInput').value.trim() 
-                : selectVal;
-
-            const quantity = document.getElementById('borrowQuantity').value;
-
-            const record = {
-                id: Date.now(),
-                studentId: String(currentUser.studentId),
-                studentName: currentUser.fullName,
-                grade: currentUser.grade,
-                roomNumber: currentUser.roomNumber,
-                item: item,
-                quantity: quantity,
-                borrowTime: borrowTime,
-                returnTime: returnTime,
-                evidenceImg: currentUploadedImage || null,
-                status: 'กำลังยืม',
-                penaltyScore: 0,
-                penaltyReason: '',
-                actualReturnTime: null
-            };
-
-            borrowRecords.unshift(record);
-            localStorage.setItem('sr_borrows', JSON.stringify(borrowRecords));
-
-            document.getElementById('borrowForm').reset();
-            document.getElementById('imagePreviewContainer').classList.add('hidden');
-            currentUploadedImage = '';
-            initDefaultDateTime();
-            toggleCustomEquipment();
-
-            renderTable();
-            updateUI();
-            alert('บันทึกการขอยืมอุปกรณ์เรียบร้อยแล้ว');
-        }
-
-        function returnItem(recordId) {
-            if (!currentUser) {
-                alert('กรุณาเข้าสู่ระบบก่อนทำรายการ');
-                return;
-            }
-
-            const record = borrowRecords.find(r => r.id === recordId);
-            if (!record) return;
-
-            if (currentUser.isAdmin) {
-                document.getElementById('penaltyRecordId').value = recordId;
-                document.getElementById('penaltyStudentInfo').textContent = `ผู้ยืม: ${record.studentName} (${record.grade}) | อุปกรณ์: ${record.item}`;
-                document.getElementById('returnCondition').value = 'NORMAL';
-                autoFillPenalty();
-                openModal('penaltyModal');
-            } else {
-                if (confirm('ยืนยันว่าได้นำอุปกรณ์มาส่งคืนเรียบร้อยแล้ว?')) {
-                    record.status = 'คืนแล้ว';
-                    record.actualReturnTime = new Date().toLocaleString('th-TH');
-                    localStorage.setItem('sr_borrows', JSON.stringify(borrowRecords));
-                    renderTable();
-                    updateUI();
-                }
-            }
-        }
-
-        function autoFillPenalty() {
-            const condition = document.getElementById('returnCondition').value;
-            const input = document.getElementById('penaltyPoints');
-            if (condition === 'NORMAL') input.value = 0;
-            else if (condition === 'LATE') input.value = 10;
-            else if (condition === 'DAMAGED') input.value = 25;
-            else if (condition === 'LOST') input.value = 50;
-        }
-
-        function confirmReturnWithPenalty(e) {
-            e.preventDefault();
-            const recordId = parseInt(document.getElementById('penaltyRecordId').value);
-            const penaltyScore = parseInt(document.getElementById('penaltyPoints').value);
-            const note = document.getElementById('penaltyNote').value.trim();
-            const conditionText = document.getElementById('returnCondition').options[document.getElementById('returnCondition').selectedIndex].text;
-
-            const recordIndex = borrowRecords.findIndex(r => r.id === recordId);
-            if (recordIndex !== -1) {
-                const record = borrowRecords[recordIndex];
-                record.status = 'คืนแล้ว';
-                record.actualReturnTime = new Date().toLocaleString('th-TH');
-                record.penaltyScore = penaltyScore;
-                record.penaltyReason = note || conditionText;
-
-                const studentIndex = students.findIndex(s => String(s.studentId).trim() === String(record.studentId).trim());
-                if (studentIndex !== -1) {
-                    students[studentIndex].score = Math.max(0, (students[studentIndex].score ?? 100) - penaltyScore);
-                    localStorage.setItem('sr_students', JSON.stringify(students));
-                }
-
-                localStorage.setItem('sr_borrows', JSON.stringify(borrowRecords));
-                closeModal('penaltyModal');
-                renderTable();
-                updateUI();
-                alert(`บันทึกการรับคืนเรียบร้อย`);
-            }
-        }
-
-        function openAdminModal() {
-            renderAdminStudents();
-            renderAdminLogs();
-            openModal('adminModal');
-        }
-
-        function switchAdminTab(tabId) {
-            document.getElementById('tabStudents').classList.add('hidden');
-            document.getElementById('tabLogs').classList.add('hidden');
-            document.getElementById('tabData').classList.add('hidden');
-
-            document.getElementById('btnTabStudents').className = "px-3 py-2 font-medium text-slate-500 hover:text-brand-navy whitespace-nowrap";
-            document.getElementById('btnTabLogs').className = "px-3 py-2 font-medium text-slate-500 hover:text-brand-navy whitespace-nowrap";
-            document.getElementById('btnTabData').className = "px-3 py-2 font-medium text-slate-500 hover:text-brand-navy whitespace-nowrap";
-
-            document.getElementById(tabId).classList.remove('hidden');
-
-            if (tabId === 'tabStudents') document.getElementById('btnTabStudents').className = "px-3 py-2 font-bold border-b-2 border-brand-navy text-brand-navy whitespace-nowrap";
-            if (tabId === 'tabLogs') document.getElementById('btnTabLogs').className = "px-3 py-2 font-bold border-b-2 border-brand-navy text-brand-navy whitespace-nowrap";
-            if (tabId === 'tabData') document.getElementById('btnTabData').className = "px-3 py-2 font-bold border-b-2 border-brand-navy text-brand-navy whitespace-nowrap";
-        }
-
-        function renderAdminStudents() {
-            const tbody = document.getElementById('adminStudentTableBody');
-            const keyword = document.getElementById('adminStudentSearch').value.toLowerCase();
-            document.getElementById('adminTabStudentCount').textContent = students.length;
-
-            const filtered = students.filter(s => 
-                s.fullName.toLowerCase().includes(keyword) || 
-                String(s.studentId).includes(keyword)
-            );
-
-            if (filtered.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-slate-400">ไม่พบข้อมูลนักเรียน</td></tr>`;
-                return;
-            }
-
-            tbody.innerHTML = filtered.map(s => `
-                <tr class="hover:bg-slate-50">
-                    <td class="p-2.5 font-bold text-brand-navy">${s.studentId}</td>
-                    <td class="p-2.5">${s.fullName}</td>
-                    <td class="p-2.5">${s.grade} (${s.roomNumber})</td>
-                    <td class="p-2.5 text-center font-bold text-amber-600">⭐ ${s.score ?? 100}</td>
-                    <td class="p-2.5 text-center">
-                        ${s.isBanned 
-                            ? `<span class="bg-red-100 text-red-700 px-2 py-0.5 rounded-full text-[10px] font-bold">ระงับสิทธิ์</span>`
-                            : `<span class="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full text-[10px] font-bold">ปกติ</span>`
-                        }
-                    </td>
-                    <td class="p-2.5 text-right space-x-1">
-                        <button onclick="adminAdjustScore('${s.studentId}')" class="bg-amber-500 hover:bg-amber-600 text-white px-2 py-1 rounded text-[10px]">แก้คะแนน</button>
-                        <button onclick="adminToggleBan('${s.studentId}')" class="${s.isBanned ? 'bg-emerald-600' : 'bg-red-600'} text-white px-2 py-1 rounded text-[10px]">
-                            ${s.isBanned ? 'ปลดแบน' : 'แบน'}
-                        </button>
-                    </td>
-                </tr>
-            `).join('');
-        }
-
-        function adminAdjustScore(studentId) {
-            const student = students.find(s => String(s.studentId).trim() === String(studentId).trim());
-            if (!student) return;
-
-            const newScore = prompt(`กรอกคะแนนใหม่สำหรับ ${student.fullName}:`, student.score ?? 100);
-            if (newScore !== null && !isNaN(newScore)) {
-                student.score = parseInt(newScore);
-                localStorage.setItem('sr_students', JSON.stringify(students));
-                renderAdminStudents();
-                updateUI();
-                renderTable();
-            }
-        }
-
-        function adminToggleBan(studentId) {
-            const student = students.find(s => String(s.studentId).trim() === String(studentId).trim());
-            if (!student) return;
-
-            student.isBanned = !student.isBanned;
-            localStorage.setItem('sr_students', JSON.stringify(students));
-            renderAdminStudents();
-            updateUI();
-        }
-
-        function renderAdminLogs() {
-            const tbody = document.getElementById('adminLogsTableBody');
-            if (loginLogs.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-slate-400">ยังไม่มีประวัติล็อกอิน</td></tr>`;
-                return;
-            }
-            tbody.innerHTML = loginLogs.map(l => `
-                <tr class="hover:bg-slate-50">
-                    <td class="p-2 text-slate-500 text-[11px]">${l.timestamp}</td>
-                    <td class="p-2 font-bold text-brand-navy">${l.studentId}</td>
-                    <td class="p-2">${l.fullName}</td>
-                </tr>
-            `).join('');
-        }
-
-        function exportSystemData() {
-            const data = {
-                students: students,
-                borrowRecords: borrowRecords,
-                loginLogs: loginLogs,
-                exportedAt: new Date().toLocaleString('th-TH')
-            };
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data, null, 2));
-            const downloadAnchor = document.createElement('a');
-            downloadAnchor.setAttribute("href", dataStr);
-            downloadAnchor.setAttribute("download", `sr_sports_backup_${Date.now()}.json`);
-            document.body.appendChild(downloadAnchor);
-            downloadAnchor.click();
-            downloadAnchor.remove();
-        }
-
-        function importSystemData() {
-            const fileInput = document.getElementById('importJsonFile');
-            const file = fileInput.files[0];
-            if (!file) {
-                alert('เลือกไฟล์ .json ก่อนนำเข้าข้อมูล');
-                return;
-            }
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const imported = JSON.parse(e.target.result);
-                    if (imported.students && imported.borrowRecords) {
-                        students = imported.students;
-                        borrowRecords = imported.borrowRecords;
-                        if (imported.loginLogs) loginLogs = imported.loginLogs;
-
-                        localStorage.setItem('sr_students', JSON.stringify(students));
-                        localStorage.setItem('sr_borrows', JSON.stringify(borrowRecords));
-                        localStorage.setItem('sr_loginLogs', JSON.stringify(loginLogs));
-
-                        alert('นำเข้าข้อมูลสำเร็จ!');
-                        renderAdminStudents();
-                        renderAdminLogs();
-                        renderTable();
-                        updateUI();
-                    } else {
-                        alert('รูปแบบไฟล์ JSON ไม่ถูกต้อง');
-                    }
-                } catch (err) {
-                    alert('เกิดข้อผิดพลาดในการอ่านไฟล์ JSON');
-                }
-            };
-            reader.readAsText(file);
-        }
-
-        function viewImage(imgUrl) {
-            document.getElementById('modalFullImage').src = imgUrl;
-            openModal('imageModal');
-        }
-
-        function formatThaiDateTime(dtStr) {
+        function formatThaiDate(dtStr) {
             if (!dtStr) return '-';
             const dt = new Date(dtStr);
             return dt.toLocaleString('th-TH', {
@@ -1107,74 +1015,21 @@
             }) + ' น.';
         }
 
-        function renderTable() {
-            const tbody = document.getElementById('borrowTableBody');
-            const searchKeyword = document.getElementById('searchInput').value.toLowerCase();
-
-            const filteredRecords = borrowRecords.filter(r => 
-                r.studentName.toLowerCase().includes(searchKeyword) ||
-                r.item.toLowerCase().includes(searchKeyword) ||
-                String(r.studentId).includes(searchKeyword)
-            );
-
-            if (filteredRecords.length === 0) {
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="6" class="p-6 text-center text-slate-400">
-                            <div class="text-3xl mb-1">📦</div>
-                            <p class="text-xs">ยังไม่มีรายการยืมอุปกรณ์</p>
-                        </td>
-                    </tr>
-                `;
-                return;
+        function getStatusBadge(status) {
+            switch(status) {
+                case 'pending':
+                    return `<span class="bg-amber-100 text-amber-800 text-[11px] px-2.5 py-0.5 rounded-full font-bold inline-block">⏳ รออนุมัติ</span>`;
+                case 'approved':
+                    return `<span class="bg-blue-100 text-blue-800 text-[11px] px-2.5 py-0.5 rounded-full font-bold inline-block">👍 อนุมัติแล้ว (รอรับ)</span>`;
+                case 'issued':
+                    return `<span class="bg-indigo-100 text-indigo-800 text-[11px] px-2.5 py-0.5 rounded-full font-bold inline-block">⚽ กำลังยืม</span>`;
+                case 'returned':
+                    return `<span class="bg-emerald-100 text-emerald-800 text-[11px] px-2.5 py-0.5 rounded-full font-bold inline-block">✅ คืนแล้ว</span>`;
+                case 'rejected':
+                    return `<span class="bg-red-100 text-red-800 text-[11px] px-2.5 py-0.5 rounded-full font-bold inline-block">❌ ไม่อนุมัติ</span>`;
+                default:
+                    return `-`;
             }
-
-            tbody.innerHTML = filteredRecords.map(r => {
-                const isReturned = r.status === 'คืนแล้ว';
-                const canReturn = currentUser && (String(currentUser.studentId).trim() === String(r.studentId).trim() || currentUser.isAdmin);
-
-                const studentData = students.find(s => String(s.studentId).trim() === String(r.studentId).trim());
-                const currentScore = studentData ? (studentData.score ?? 100) : 100;
-
-                return `
-                    <tr class="hover:bg-slate-50 transition">
-                        <td class="p-3 pl-4 sm:pl-3">
-                            <div class="font-bold text-slate-800 text-xs sm:text-sm">${r.studentName}</div>
-                            <div class="text-[10px] sm:text-xs text-slate-400">${r.grade} เลขที่ ${r.roomNumber} (⭐ ${currentScore})</div>
-                        </td>
-                        <td class="p-3">
-                            <span class="font-semibold text-brand-navy text-xs sm:text-sm">${r.item}</span>
-                            <span class="ml-1 bg-amber-100 text-amber-900 px-2 py-0.5 rounded-full text-[10px] font-bold">x${r.quantity}</span>
-                        </td>
-                        <td class="p-3 text-[11px] sm:text-xs text-slate-600">
-                            <div>${formatThaiDateTime(r.returnTime)}</div>
-                        </td>
-                        <td class="p-3 text-center">
-                            ${r.evidenceImg ? `
-                                <button onclick="viewImage('${r.evidenceImg}')" class="text-brand-blue hover:text-brand-navy text-[11px] flex items-center justify-center gap-1 mx-auto bg-blue-50 hover:bg-blue-100 px-2 py-1 rounded-lg border border-blue-200">
-                                    <i class="fa-solid fa-image"></i>รูป
-                                </button>
-                            ` : '<span class="text-xs text-slate-300">-</span>'}
-                        </td>
-                        <td class="p-3 text-center">
-                            ${isReturned 
-                                ? `<div class="space-y-0.5">
-                                    <span class="bg-emerald-100 text-emerald-800 text-[10px] sm:text-xs px-2 py-0.5 rounded-full font-medium inline-block">✅ คืนแล้ว</span>
-                                    ${r.penaltyScore > 0 ? `<div class="text-[10px] text-red-600 font-bold">หัก ${r.penaltyScore} คะแนน</div>` : ''}
-                                   </div>`
-                                : `<span class="bg-amber-100 text-amber-900 border border-amber-300 text-[10px] sm:text-xs px-2 py-0.5 rounded-full font-medium inline-block">⏳ กำลังยืม</span>`
-                            }
-                        </td>
-                        <td class="p-3 text-right pr-4 sm:pr-3">
-                            ${!isReturned && canReturn ? `
-                                <button onclick="returnItem(${r.id})" class="bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] sm:text-xs px-2.5 py-1.5 rounded-lg font-medium shadow-sm transition">
-                                    ${currentUser.isAdmin ? '⚖️ ตรวจรับ' : 'ส่งคืน'}
-                                </button>
-                            ` : ''}
-                        </td>
-                    </tr>
-                `;
-            }).join('');
         }
     </script>
 </body>
